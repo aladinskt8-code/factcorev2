@@ -1,1 +1,1468 @@
-# factcorev2
+<!DOCTYPE html>
+<html lang="pt-BR"><head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>FactCore BR — Verificação de Fatos</title>
+<link href="FactCore%20BR%20%E2%80%94%20Verifica%C3%A7%C3%A3o%20de%20Fatos_files/css2.css" rel="stylesheet">
+<style>
+:root {
+  --bg: #0a0a0a;
+  --panel: #0d0d1a;
+  --panel2: #111120;
+  --true: #00ff88;
+  --false: #ff4500;
+  --opinion: #ffcc00;
+  --accent: #00ccff;
+  --purple: #b088ff;
+  --border: rgba(255,255,255,0.06);
+  --border-true: rgba(0,255,136,0.25);
+  --border-false: rgba(255,69,0,0.25);
+  --border-opinion: rgba(255,204,0,0.25);
+  --border-accent: rgba(0,204,255,0.25);
+  --mono: 'Share Tech Mono', monospace;
+  --body: 'Barlow Condensed', sans-serif;
+  --glow-true: 0 0 16px rgba(0,255,136,0.35);
+  --glow-false: 0 0 16px rgba(255,69,0,0.35);
+  --glow-opinion: 0 0 16px rgba(255,204,0,0.35);
+  --glow-accent: 0 0 16px rgba(0,204,255,0.35);
+  --glow-purple: 0 0 16px rgba(176,136,255,0.35);
+}
+
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{background:var(--bg);color:#e0e0e0;font-family:var(--body);height:100%;overflow:hidden;}
+
+body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,0.07) 3px,rgba(0,0,0,0.07) 4px);pointer-events:none;z-index:9999;}
+body::after{content:'';position:fixed;inset:0;background:radial-gradient(ellipse at center,transparent 55%,rgba(0,0,0,0.55) 100%);pointer-events:none;z-index:9998;}
+
+/* ========== SCREENS ========== */
+.screen{display:none;height:100vh;flex-direction:column;overflow:hidden;}
+.screen.active{display:flex;}
+
+/* ========== MODE SELECT ========== */
+#screen-mode{align-items:center;justify-content:center;gap:0;}
+
+.mode-bg{
+  position:absolute;inset:0;
+  background:
+    radial-gradient(ellipse 60% 40% at 20% 50%, rgba(0,255,136,0.04) 0%, transparent 70%),
+    radial-gradient(ellipse 60% 40% at 80% 50%, rgba(176,136,255,0.04) 0%, transparent 70%);
+}
+
+.mode-wrap{
+  position:relative;z-index:1;
+  display:flex;flex-direction:column;align-items:center;gap:40px;
+  padding:40px 24px;
+}
+
+.mode-logo{
+  display:flex;flex-direction:column;align-items:center;gap:8px;
+}
+
+.mode-logo-text{
+  font-family:var(--mono);
+  font-size:32px;letter-spacing:0.3em;
+  color:var(--true);text-shadow:var(--glow-true);
+}
+
+.mode-logo-text span{color:var(--accent);}
+
+.mode-logo-sub{
+  font-family:var(--mono);font-size:9px;letter-spacing:0.2em;
+  color:rgba(255,255,255,0.2);
+}
+
+.mode-cards{
+  display:grid;grid-template-columns:1fr 1fr;gap:20px;
+  max-width:680px;width:100%;
+}
+
+.mode-card{
+  border:1px solid;padding:28px 24px;
+  display:flex;flex-direction:column;gap:14px;
+  cursor:pointer;transition:all 0.2s;
+  position:relative;overflow:hidden;
+  background:rgba(255,255,255,0.01);
+}
+
+.mode-card::before{
+  content:'';position:absolute;inset:0;
+  opacity:0;transition:opacity 0.2s;
+}
+
+.mode-card.student{border-color:var(--border-true);}
+.mode-card.student::before{background:rgba(0,255,136,0.04);}
+.mode-card.student:hover{box-shadow:var(--glow-true);border-color:var(--true);}
+.mode-card.student:hover::before{opacity:1;}
+
+.mode-card.teacher{border-color:rgba(176,136,255,0.25);}
+.mode-card.teacher::before{background:rgba(176,136,255,0.04);}
+.mode-card.teacher:hover{box-shadow:var(--glow-purple);border-color:var(--purple);}
+.mode-card.teacher:hover::before{opacity:1;}
+
+.mode-card-icon{font-size:32px;line-height:1;}
+
+.mode-card-title{
+  font-family:var(--mono);font-size:13px;letter-spacing:0.18em;
+}
+.mode-card.student .mode-card-title{color:var(--true);}
+.mode-card.teacher .mode-card-title{color:var(--purple);}
+
+.mode-card-desc{
+  font-size:13px;color:rgba(255,255,255,0.4);
+  line-height:1.6;letter-spacing:0.03em;
+}
+
+.mode-card-cta{
+  font-family:var(--mono);font-size:9px;letter-spacing:0.15em;
+  margin-top:4px;display:flex;align-items:center;gap:6px;
+}
+.mode-card.student .mode-card-cta{color:var(--true);}
+.mode-card.teacher .mode-card-cta{color:var(--purple);}
+
+/* ========== TOPBAR ========== */
+.topbar{
+  background:rgba(0,0,0,0.92);
+  border-bottom:1px solid var(--border-true);
+  padding:10px 16px;
+  display:flex;align-items:center;justify-content:space-between;
+  flex-shrink:0;backdrop-filter:blur(10px);z-index:100;
+}
+
+.logo{
+  font-family:var(--mono);font-size:17px;
+  letter-spacing:0.2em;color:var(--true);
+  text-shadow:var(--glow-true);
+  display:flex;align-items:center;gap:10px;cursor:pointer;
+}
+.logo span{color:var(--accent);}
+.logo-br{font-size:7px;letter-spacing:0.12em;color:rgba(255,204,0,0.6);border:1px solid rgba(255,204,0,0.25);padding:2px 5px;}
+.logo-mode{font-size:7px;letter-spacing:0.12em;padding:2px 7px;border:1px solid;}
+.logo-mode.student{color:var(--true);border-color:var(--border-true);}
+.logo-mode.teacher{color:var(--purple);border-color:rgba(176,136,255,0.3);}
+
+.topbar-right{display:flex;gap:12px;align-items:center;}
+
+.stat-pill{font-family:var(--mono);font-size:9px;letter-spacing:0.1em;padding:3px 8px;border:1px solid;display:flex;align-items:center;gap:5px;}
+.stat-pill.v{border-color:var(--border-true);color:var(--true);}
+.stat-pill.f{border-color:var(--border-false);color:var(--false);}
+.stat-pill.o{border-color:var(--border-opinion);color:var(--opinion);}
+.stat-dot{width:6px;height:6px;border-radius:50%;background:currentColor;animation:blink 2s step-end infinite;}
+@keyframes blink{50%{opacity:0.2;}}
+
+.topbar-btn{
+  font-family:var(--mono);font-size:8px;letter-spacing:0.12em;
+  padding:4px 10px;border:1px solid var(--border);
+  color:rgba(255,255,255,0.3);background:none;cursor:pointer;
+  transition:all 0.15s;
+}
+.topbar-btn:hover{border-color:rgba(255,255,255,0.2);color:rgba(255,255,255,0.6);}
+
+/* Cat bar */
+.cat-bar{
+  background:rgba(0,0,0,0.7);border-bottom:1px solid var(--border);
+  padding:6px 16px;display:flex;gap:6px;align-items:center;
+  flex-shrink:0;overflow-x:auto;scrollbar-width:none;
+}
+.cat-bar::-webkit-scrollbar{display:none;}
+.cat-label{font-family:var(--mono);font-size:7px;letter-spacing:0.15em;color:rgba(255,255,255,0.2);margin-right:4px;white-space:nowrap;}
+.cat-chip{font-family:var(--mono);font-size:8px;letter-spacing:0.1em;padding:4px 10px;border:1px solid var(--border);background:none;color:rgba(255,255,255,0.3);cursor:pointer;transition:all 0.15s;white-space:nowrap;}
+.cat-chip:hover{border-color:rgba(0,204,255,0.3);color:var(--accent);}
+.cat-chip.active{border-color:var(--accent);color:var(--accent);background:rgba(0,204,255,0.08);}
+
+/* ========== STUDENT LAYOUT ========== */
+#screen-student .main{display:grid;grid-template-columns:1fr 320px;overflow:hidden;min-height:0;flex:1;}
+
+.chat-panel{display:flex;flex-direction:column;border-right:1px solid var(--border);overflow:hidden;}
+.chat-messages{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:12px;scrollbar-width:thin;scrollbar-color:rgba(0,255,136,0.15) transparent;}
+
+.chat-welcome{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:18px;text-align:center;padding:24px;}
+.welcome-icon{font-size:40px;}
+.welcome-title{font-family:var(--mono);font-size:13px;letter-spacing:0.2em;color:var(--true);text-shadow:var(--glow-true);}
+.welcome-sub{font-size:13px;color:rgba(255,255,255,0.3);letter-spacing:0.03em;max-width:340px;line-height:1.7;}
+.welcome-agencies{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;}
+.agency-badge{font-family:var(--mono);font-size:7px;letter-spacing:0.1em;padding:2px 7px;border:1px solid rgba(0,255,136,0.2);color:rgba(0,255,136,0.5);}
+
+.msg{display:flex;flex-direction:column;gap:6px;animation:msgIn 0.25s cubic-bezier(0.175,0.885,0.32,1.275);}
+@keyframes msgIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+.msg.user{align-items:flex-end;}
+.msg.bot{align-items:flex-start;}
+.msg-label{font-family:var(--mono);font-size:8px;letter-spacing:0.15em;color:rgba(255,255,255,0.25);}
+.msg-bubble{max-width:85%;padding:10px 14px;font-size:13px;line-height:1.5;letter-spacing:0.03em;}
+.msg.user .msg-bubble{background:rgba(0,204,255,0.08);border:1px solid rgba(0,204,255,0.2);color:rgba(255,255,255,0.85);}
+.msg.bot .msg-bubble{background:var(--panel2);border:1px solid var(--border);color:rgba(255,255,255,0.8);}
+
+/* Verdict card */
+.verdict-card{border:1px solid;padding:14px;display:flex;flex-direction:column;gap:10px;max-width:96%;position:relative;overflow:hidden;}
+.verdict-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;}
+.verdict-card.true{border-color:var(--border-true);background:rgba(0,255,136,0.04);box-shadow:var(--glow-true);}
+.verdict-card.true::before{background:var(--true);box-shadow:var(--glow-true);}
+.verdict-card.false{border-color:var(--border-false);background:rgba(255,69,0,0.04);box-shadow:var(--glow-false);}
+.verdict-card.false::before{background:var(--false);box-shadow:var(--glow-false);}
+.verdict-card.opinion{border-color:var(--border-opinion);background:rgba(255,204,0,0.04);box-shadow:var(--glow-opinion);}
+.verdict-card.opinion::before{background:var(--opinion);box-shadow:var(--glow-opinion);}
+
+.verdict-header{display:flex;align-items:center;gap:10px;}
+.verdict-badge{font-family:var(--mono);font-size:9px;letter-spacing:0.15em;padding:3px 10px;border:1px solid currentColor;font-weight:bold;white-space:nowrap;}
+.verdict-badge.true{color:var(--true);}
+.verdict-badge.false{color:var(--false);}
+.verdict-badge.opinion{color:var(--opinion);}
+.verdict-score-bar{height:4px;background:rgba(255,255,255,0.05);flex:1;}
+.verdict-score-fill{height:100%;transition:width 0.8s cubic-bezier(0.4,0,0.2,1);}
+.true .verdict-score-fill{background:var(--true);box-shadow:0 0 8px var(--true);}
+.false .verdict-score-fill{background:var(--false);box-shadow:0 0 8px var(--false);}
+.opinion .verdict-score-fill{background:var(--opinion);box-shadow:0 0 8px var(--opinion);}
+.verdict-score-num{font-family:var(--mono);font-size:11px;flex-shrink:0;}
+.true .verdict-score-num{color:var(--true);}
+.false .verdict-score-num{color:var(--false);}
+.opinion .verdict-score-num{color:var(--opinion);}
+
+.verdict-tags{display:flex;gap:6px;flex-wrap:wrap;}
+.verdict-cat-tag{font-family:var(--mono);font-size:7px;letter-spacing:0.12em;padding:2px 7px;border:1px solid rgba(0,204,255,0.3);color:var(--accent);background:rgba(0,204,255,0.06);}
+.verdict-dna-tag{font-family:var(--mono);font-size:7px;letter-spacing:0.1em;padding:2px 7px;border:1px solid rgba(255,204,0,0.3);color:var(--opinion);background:rgba(255,204,0,0.04);}
+.verdict-claim{font-size:13px;color:rgba(255,255,255,0.85);line-height:1.5;font-style:italic;letter-spacing:0.02em;}
+.verdict-explanation{font-size:12px;color:rgba(255,255,255,0.5);line-height:1.6;letter-spacing:0.02em;}
+.verdict-sources{display:flex;flex-direction:column;gap:5px;border-top:1px solid var(--border);padding-top:8px;}
+.verdict-source-item{display:flex;align-items:flex-start;gap:8px;font-size:11px;}
+.verdict-source-agency{font-family:var(--mono);font-size:7px;letter-spacing:0.1em;color:var(--true);padding:2px 5px;border:1px solid var(--border-true);white-space:nowrap;flex-shrink:0;}
+.verdict-source-text{color:rgba(255,255,255,0.4);line-height:1.4;}
+.verdict-source-link{font-family:var(--mono);font-size:7px;color:rgba(0,204,255,0.5);letter-spacing:0.05em;cursor:pointer;text-decoration:none;display:block;margin-top:2px;}
+.verdict-api-tag{font-family:var(--mono);font-size:7px;letter-spacing:0.12em;color:rgba(255,255,255,0.15);border-top:1px solid var(--border);padding-top:6px;}
+
+.typing-indicator{display:flex;gap:4px;padding:8px 14px;background:var(--panel2);border:1px solid var(--border);width:fit-content;}
+.typing-dot{width:5px;height:5px;border-radius:50%;background:var(--true);animation:typingBounce 1.2s ease-in-out infinite;}
+.typing-dot:nth-child(2){animation-delay:0.2s;}
+.typing-dot:nth-child(3){animation-delay:0.4s;}
+@keyframes typingBounce{0%,60%,100%{transform:translateY(0);opacity:0.4;}30%{transform:translateY(-5px);opacity:1;}}
+
+.chat-input-wrap{padding:12px 16px;border-top:1px solid var(--border-true);background:rgba(0,0,0,0.85);display:flex;flex-direction:column;gap:8px;}
+.input-row{display:flex;gap:8px;align-items:flex-end;}
+.chat-textarea{flex:1;background:rgba(0,255,136,0.04);border:1px solid var(--border-true);color:rgba(255,255,255,0.9);font-family:var(--body);font-size:13px;letter-spacing:0.03em;padding:10px 12px;resize:none;outline:none;min-height:44px;max-height:100px;line-height:1.4;transition:border-color 0.2s;}
+.chat-textarea:focus{border-color:var(--true);box-shadow:0 0 10px rgba(0,255,136,0.1);}
+.chat-textarea::placeholder{color:rgba(255,255,255,0.2);}
+.send-btn{background:rgba(0,255,136,0.1);border:1px solid var(--border-true);color:var(--true);font-family:var(--mono);font-size:10px;letter-spacing:0.15em;padding:10px 16px;cursor:pointer;height:44px;transition:all 0.15s;white-space:nowrap;}
+.send-btn:hover{background:rgba(0,255,136,0.18);box-shadow:var(--glow-true);}
+.send-btn:disabled{opacity:0.3;cursor:not-allowed;}
+.input-hints{display:flex;gap:6px;flex-wrap:wrap;}
+.hint-chip{font-size:10px;font-family:var(--body);letter-spacing:0.05em;padding:3px 10px;border:1px solid var(--border);color:rgba(255,255,255,0.3);cursor:pointer;transition:all 0.15s;background:none;}
+.hint-chip:hover{border-color:rgba(0,204,255,0.3);color:var(--accent);}
+
+/* Right panel */
+.right-panel{display:flex;flex-direction:column;overflow:hidden;background:var(--panel);}
+.panel-tabs{display:flex;border-bottom:1px solid var(--border);flex-shrink:0;}
+.panel-tab{flex:1;padding:10px 6px;font-family:var(--mono);font-size:8px;letter-spacing:0.1em;text-align:center;cursor:pointer;border:none;background:none;color:rgba(255,255,255,0.25);transition:all 0.15s;border-bottom:2px solid transparent;}
+.panel-tab.active{color:var(--true);border-bottom-color:var(--true);}
+.panel-content{flex:1;overflow-y:auto;scrollbar-width:thin;scrollbar-color:rgba(0,255,136,0.1) transparent;}
+.tab-pane{display:none;padding:12px;flex-direction:column;gap:10px;}
+.tab-pane.active{display:flex;}
+
+/* Feed */
+.feed-header{font-family:var(--mono);font-size:8px;letter-spacing:0.15em;color:rgba(0,255,136,0.4);padding-bottom:8px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;}
+.feed-live-tag{display:flex;align-items:center;gap:4px;color:var(--true);font-size:7px;}
+.feed-live-dot{width:4px;height:4px;border-radius:50%;background:var(--true);animation:blink 1.5s step-end infinite;}
+.feed-item{border:1px solid var(--border);background:rgba(255,255,255,0.01);padding:10px;display:flex;flex-direction:column;gap:5px;cursor:pointer;transition:all 0.15s;}
+.feed-item:hover{background:rgba(0,255,136,0.03);border-color:rgba(0,255,136,0.2);}
+.feed-item-top{display:flex;align-items:center;gap:6px;}
+.feed-verdict-badge{font-family:var(--mono);font-size:7px;letter-spacing:0.1em;padding:1px 5px;border:1px solid currentColor;flex-shrink:0;}
+.feed-verdict-badge.true{color:var(--true);}
+.feed-verdict-badge.false{color:var(--false);}
+.feed-verdict-badge.opinion{color:var(--opinion);}
+.feed-source{font-family:var(--mono);font-size:7px;letter-spacing:0.08em;color:rgba(255,255,255,0.2);}
+.feed-cat{font-family:var(--mono);font-size:7px;color:var(--accent);opacity:0.6;margin-left:auto;}
+.feed-title{font-size:11px;letter-spacing:0.02em;color:rgba(255,255,255,0.65);line-height:1.4;}
+.feed-time{font-family:var(--mono);font-size:8px;color:rgba(255,255,255,0.15);letter-spacing:0.05em;}
+
+/* Stats */
+.stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.stat-block{background:var(--panel2);border:1px solid var(--border);padding:12px;display:flex;flex-direction:column;gap:4px;}
+.stat-block-label{font-family:var(--mono);font-size:7px;letter-spacing:0.15em;color:rgba(255,255,255,0.25);}
+.stat-block-value{font-family:var(--mono);font-size:24px;line-height:1;}
+.stat-block-value.v{color:var(--true);text-shadow:var(--glow-true);}
+.stat-block-value.f{color:var(--false);text-shadow:var(--glow-false);}
+.stat-block-value.t{color:var(--accent);}
+.stat-block-sub{font-size:10px;color:rgba(255,255,255,0.2);letter-spacing:0.05em;}
+.dist-chart{background:var(--panel2);border:1px solid var(--border);padding:12px;display:flex;flex-direction:column;gap:8px;}
+.dist-chart-title{font-family:var(--mono);font-size:8px;letter-spacing:0.12em;color:rgba(255,255,255,0.25);}
+.dist-bar-row{display:flex;align-items:center;gap:8px;}
+.dist-bar-label{font-family:var(--mono);font-size:8px;letter-spacing:0.08em;width:56px;flex-shrink:0;}
+.dist-bar-track{flex:1;height:6px;background:rgba(255,255,255,0.04);}
+.dist-bar-fill{height:100%;transition:width 1s ease;}
+.dist-bar-pct{font-family:var(--mono);font-size:8px;width:28px;text-align:right;flex-shrink:0;}
+.dist-bar-row.v .dist-bar-label{color:var(--true);}
+.dist-bar-row.v .dist-bar-fill{background:var(--true);box-shadow:0 0 6px var(--true);}
+.dist-bar-row.v .dist-bar-pct{color:var(--true);}
+.dist-bar-row.f .dist-bar-label{color:var(--false);}
+.dist-bar-row.f .dist-bar-fill{background:var(--false);box-shadow:0 0 6px var(--false);}
+.dist-bar-row.f .dist-bar-pct{color:var(--false);}
+.dist-bar-row.o .dist-bar-label{color:var(--opinion);}
+.dist-bar-row.o .dist-bar-fill{background:var(--opinion);box-shadow:0 0 6px var(--opinion);}
+.dist-bar-row.o .dist-bar-pct{color:var(--opinion);}
+
+/* ========== PROFESSOR SCREEN ========== */
+#screen-teacher{overflow:hidden;}
+#screen-teacher .main{display:grid;grid-template-columns:300px 1fr;overflow:hidden;min-height:0;flex:1;}
+
+/* Teacher sidebar */
+.teacher-sidebar{
+  background:rgba(0,0,0,0.5);
+  border-right:1px solid rgba(176,136,255,0.15);
+  display:flex;flex-direction:column;overflow:hidden;
+}
+
+.sidebar-section{
+  border-bottom:1px solid var(--border);
+  padding:12px;display:flex;flex-direction:column;gap:8px;
+}
+
+.sidebar-title{
+  font-family:var(--mono);font-size:8px;letter-spacing:0.15em;
+  color:rgba(176,136,255,0.6);
+  display:flex;align-items:center;gap:6px;
+}
+
+.session-code-display{
+  font-family:var(--mono);font-size:28px;letter-spacing:0.3em;
+  color:var(--purple);text-shadow:var(--glow-purple);
+  text-align:center;padding:10px 0;
+}
+
+.session-info{
+  display:flex;justify-content:space-between;
+  font-family:var(--mono);font-size:8px;letter-spacing:0.1em;
+  color:rgba(255,255,255,0.25);
+}
+
+.session-count{
+  display:flex;align-items:center;gap:5px;
+  font-family:var(--mono);font-size:10px;color:var(--purple);
+}
+
+.sidebar-scroll{flex:1;overflow-y:auto;scrollbar-width:thin;scrollbar-color:rgba(176,136,255,0.1) transparent;}
+
+/* Bank item */
+.bank-category{margin-bottom:2px;}
+.bank-cat-header{
+  padding:8px 12px;display:flex;align-items:center;gap:8px;
+  cursor:pointer;user-select:none;
+  font-family:var(--mono);font-size:8px;letter-spacing:0.12em;
+  color:rgba(255,255,255,0.35);transition:all 0.15s;
+  border-bottom:1px solid var(--border);
+}
+.bank-cat-header:hover{color:rgba(255,255,255,0.6);}
+.bank-cat-icon{font-size:13px;}
+
+.bank-items{display:none;flex-direction:column;gap:0;}
+.bank-category.open .bank-items{display:flex;}
+
+.bank-item{
+  padding:10px 12px 10px 32px;
+  font-size:12px;color:rgba(255,255,255,0.4);
+  line-height:1.4;letter-spacing:0.02em;
+  cursor:pointer;transition:all 0.15s;
+  border-bottom:1px solid rgba(255,255,255,0.03);
+  position:relative;
+}
+.bank-item::before{
+  content:'▸';position:absolute;left:16px;top:11px;
+  font-family:var(--mono);font-size:8px;color:rgba(176,136,255,0.3);
+}
+.bank-item:hover{background:rgba(176,136,255,0.05);color:rgba(255,255,255,0.7);}
+.bank-item.selected{background:rgba(176,136,255,0.08);color:var(--purple);border-left:2px solid var(--purple);}
+
+/* Teacher main area */
+.teacher-main{
+  display:flex;flex-direction:column;overflow:hidden;
+}
+
+/* Teacher toolbar */
+.teacher-toolbar{
+  background:rgba(0,0,0,0.6);
+  border-bottom:1px solid rgba(176,136,255,0.15);
+  padding:10px 16px;
+  display:flex;align-items:center;gap:10px;
+  flex-shrink:0;
+}
+
+.teacher-btn{
+  font-family:var(--mono);font-size:9px;letter-spacing:0.12em;
+  padding:7px 14px;border:1px solid;cursor:pointer;
+  transition:all 0.15s;background:none;
+}
+
+.teacher-btn.launch{
+  border-color:rgba(176,136,255,0.4);color:var(--purple);
+  background:rgba(176,136,255,0.08);
+}
+.teacher-btn.launch:hover{background:rgba(176,136,255,0.15);box-shadow:var(--glow-purple);}
+.teacher-btn.launch:disabled{opacity:0.3;cursor:not-allowed;}
+
+.teacher-btn.reveal{
+  border-color:var(--border-true);color:var(--true);
+  background:rgba(0,255,136,0.08);
+}
+.teacher-btn.reveal:hover{background:rgba(0,255,136,0.15);box-shadow:var(--glow-true);}
+.teacher-btn.reveal:disabled{opacity:0.3;cursor:not-allowed;}
+
+.teacher-btn.reset{
+  border-color:var(--border);color:rgba(255,255,255,0.3);
+}
+.teacher-btn.reset:hover{color:rgba(255,255,255,0.6);}
+
+.toolbar-claim-preview{
+  flex:1;font-size:12px;color:rgba(255,255,255,0.3);
+  font-style:italic;letter-spacing:0.02em;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+
+/* Quiz stage — the projector view */
+.quiz-stage{
+  flex:1;display:flex;flex-direction:column;
+  overflow:hidden;
+}
+
+/* Waiting state */
+.quiz-waiting{
+  flex:1;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  gap:20px;text-align:center;padding:32px;
+}
+.quiz-waiting-icon{font-size:56px;opacity:0.4;}
+.quiz-waiting-title{font-family:var(--mono);font-size:14px;letter-spacing:0.2em;color:rgba(176,136,255,0.5);}
+.quiz-waiting-sub{font-size:13px;color:rgba(255,255,255,0.2);max-width:360px;line-height:1.7;}
+
+/* Active quiz */
+.quiz-active{
+  flex:1;display:none;flex-direction:column;
+  padding:24px;gap:20px;overflow-y:auto;
+}
+.quiz-active.visible{display:flex;}
+
+.quiz-claim-box{
+  border:1px solid rgba(176,136,255,0.3);
+  background:rgba(176,136,255,0.04);
+  padding:20px 24px;
+  display:flex;flex-direction:column;gap:10px;
+}
+
+.quiz-claim-label{
+  font-family:var(--mono);font-size:8px;letter-spacing:0.18em;
+  color:rgba(176,136,255,0.5);
+}
+
+.quiz-claim-text{
+  font-size:18px;font-weight:600;letter-spacing:0.03em;
+  color:rgba(255,255,255,0.9);line-height:1.5;
+}
+
+.quiz-claim-cat{
+  font-family:var(--mono);font-size:8px;letter-spacing:0.12em;
+  color:var(--accent);opacity:0.7;
+}
+
+/* Vote buttons */
+.quiz-vote-row{
+  display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;
+}
+
+.vote-btn{
+  padding:18px 12px;border:1px solid;cursor:pointer;
+  display:flex;flex-direction:column;align-items:center;gap:8px;
+  transition:all 0.2s;background:rgba(255,255,255,0.01);
+  position:relative;overflow:hidden;
+}
+
+.vote-btn::before{content:'';position:absolute;inset:0;opacity:0;transition:opacity 0.2s;}
+
+.vote-btn.true-btn{border-color:var(--border-true);}
+.vote-btn.true-btn::before{background:rgba(0,255,136,0.06);}
+.vote-btn.true-btn:hover{border-color:var(--true);box-shadow:var(--glow-true);}
+.vote-btn.true-btn:hover::before{opacity:1;}
+
+.vote-btn.false-btn{border-color:var(--border-false);}
+.vote-btn.false-btn::before{background:rgba(255,69,0,0.06);}
+.vote-btn.false-btn:hover{border-color:var(--false);box-shadow:var(--glow-false);}
+.vote-btn.false-btn:hover::before{opacity:1;}
+
+.vote-btn.opinion-btn{border-color:var(--border-opinion);}
+.vote-btn.opinion-btn::before{background:rgba(255,204,0,0.06);}
+.vote-btn.opinion-btn:hover{border-color:var(--opinion);box-shadow:var(--glow-opinion);}
+.vote-btn.opinion-btn:hover::before{opacity:1;}
+
+.vote-btn-icon{font-size:24px;line-height:1;}
+.vote-btn-label{font-family:var(--mono);font-size:10px;letter-spacing:0.15em;}
+.vote-btn.true-btn .vote-btn-label{color:var(--true);}
+.vote-btn.false-btn .vote-btn-label{color:var(--false);}
+.vote-btn.opinion-btn .vote-btn-label{color:var(--opinion);}
+.vote-btn-count{font-family:var(--mono);font-size:22px;}
+.vote-btn.true-btn .vote-btn-count{color:var(--true);}
+.vote-btn.false-btn .vote-btn-count{color:var(--false);}
+.vote-btn.opinion-btn .vote-btn-count{color:var(--opinion);}
+
+/* Live bar */
+.quiz-live-bars{
+  display:flex;flex-direction:column;gap:6px;
+}
+
+.live-bar-row{display:flex;align-items:center;gap:10px;}
+.live-bar-label{font-family:var(--mono);font-size:8px;letter-spacing:0.1em;width:56px;flex-shrink:0;}
+.live-bar-track{flex:1;height:8px;background:rgba(255,255,255,0.04);position:relative;}
+.live-bar-fill{height:100%;transition:width 0.5s ease;position:relative;}
+.live-bar-fill::after{content:'';position:absolute;right:0;top:0;bottom:0;width:2px;background:currentColor;filter:blur(2px);}
+.live-bar-pct{font-family:var(--mono);font-size:9px;width:32px;text-align:right;flex-shrink:0;}
+
+.live-bar-row.v .live-bar-label{color:var(--true);}
+.live-bar-row.v .live-bar-fill{background:var(--true);box-shadow:0 0 8px var(--true);}
+.live-bar-row.v .live-bar-fill::after{color:var(--true);}
+.live-bar-row.v .live-bar-pct{color:var(--true);}
+.live-bar-row.f .live-bar-label{color:var(--false);}
+.live-bar-row.f .live-bar-fill{background:var(--false);box-shadow:0 0 8px var(--false);}
+.live-bar-row.f .live-bar-pct{color:var(--false);}
+.live-bar-row.o .live-bar-label{color:var(--opinion);}
+.live-bar-row.o .live-bar-fill{background:var(--opinion);box-shadow:0 0 8px var(--opinion);}
+.live-bar-row.o .live-bar-pct{color:var(--opinion);}
+
+/* Reveal panel */
+.quiz-reveal{
+  display:none;
+  border:1px solid var(--border-true);
+  background:rgba(0,255,136,0.03);
+  padding:16px;gap:12px;flex-direction:column;
+  animation:revealIn 0.4s ease;
+}
+.quiz-reveal.visible{display:flex;}
+@keyframes revealIn{from{opacity:0;transform:scale(0.97);}to{opacity:1;transform:scale(1);}}
+
+.reveal-header{
+  display:flex;align-items:center;gap:12px;
+}
+
+.reveal-badge{
+  font-family:var(--mono);font-size:11px;letter-spacing:0.15em;
+  padding:5px 14px;border:1px solid currentColor;
+}
+.reveal-badge.true{color:var(--true);}
+.reveal-badge.false{color:var(--false);}
+.reveal-badge.opinion{color:var(--opinion);}
+
+.reveal-score-info{
+  font-family:var(--mono);font-size:11px;
+}
+.reveal-score-info.true{color:var(--true);}
+.reveal-score-info.false{color:var(--false);}
+.reveal-score-info.opinion{color:var(--opinion);}
+
+.reveal-result-class{
+  font-family:var(--mono);font-size:9px;letter-spacing:0.12em;
+  margin-left:auto;
+}
+
+.reveal-explanation{
+  font-size:12px;color:rgba(255,255,255,0.5);
+  line-height:1.6;letter-spacing:0.02em;
+}
+
+.reveal-sources{
+  display:flex;flex-direction:column;gap:4px;
+}
+
+.reveal-source-row{
+  display:flex;align-items:center;gap:8px;
+  font-size:11px;
+}
+
+.reveal-source-agency{
+  font-family:var(--mono);font-size:7px;letter-spacing:0.1em;
+  color:var(--true);padding:2px 5px;
+  border:1px solid var(--border-true);
+  white-space:nowrap;flex-shrink:0;
+}
+
+.reveal-source-text{color:rgba(255,255,255,0.35);line-height:1.4;}
+
+/* Class result box */
+.class-result-box{
+  display:flex;flex-direction:column;gap:6px;
+  border-top:1px solid var(--border);
+  padding-top:10px;
+}
+
+.class-result-title{
+  font-family:var(--mono);font-size:8px;letter-spacing:0.15em;
+  color:rgba(255,255,255,0.25);
+}
+
+.class-result-row{
+  display:flex;align-items:center;justify-content:space-between;
+  font-size:12px;
+}
+
+.class-result-stat{
+  font-family:var(--mono);font-size:11px;
+}
+
+/* Report panel */
+.report-panel{
+  background:var(--panel);
+  border-left:1px solid rgba(176,136,255,0.15);
+  display:flex;flex-direction:column;
+  overflow:hidden;
+  width:260px;
+  flex-shrink:0;
+}
+
+.report-header{
+  padding:10px 12px;
+  border-bottom:1px solid var(--border);
+  font-family:var(--mono);font-size:8px;letter-spacing:0.15em;
+  color:rgba(176,136,255,0.5);
+  display:flex;justify-content:space-between;align-items:center;
+}
+
+.report-scroll{flex:1;overflow-y:auto;scrollbar-width:thin;scrollbar-color:rgba(176,136,255,0.1) transparent;}
+
+.report-section{padding:10px 12px;border-bottom:1px solid var(--border);display:flex;flex-direction:column;gap:6px;}
+.report-section-title{font-family:var(--mono);font-size:7px;letter-spacing:0.15em;color:rgba(255,255,255,0.2);}
+
+.report-q-item{
+  padding:8px;border:1px solid var(--border);
+  background:rgba(255,255,255,0.01);
+  display:flex;flex-direction:column;gap:4px;
+}
+
+.report-q-top{display:flex;align-items:center;gap:6px;}
+.report-q-num{font-family:var(--mono);font-size:8px;color:rgba(176,136,255,0.5);}
+.report-q-badge{font-family:var(--mono);font-size:7px;padding:1px 5px;border:1px solid currentColor;}
+.report-q-badge.true{color:var(--true);}
+.report-q-badge.false{color:var(--false);}
+.report-q-badge.opinion{color:var(--opinion);}
+.report-q-text{font-size:10px;color:rgba(255,255,255,0.4);line-height:1.4;}
+.report-q-pct{font-family:var(--mono);font-size:9px;margin-left:auto;flex-shrink:0;}
+.report-q-pct.good{color:var(--true);}
+.report-q-pct.bad{color:var(--false);}
+
+.report-empty{
+  padding:24px 12px;text-align:center;
+  font-size:11px;color:rgba(255,255,255,0.15);
+  letter-spacing:0.05em;line-height:1.7;
+}
+
+/* Status bar */
+.statusbar{background:rgba(0,0,0,0.9);border-top:1px solid var(--border);padding:5px 16px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+.status-left{font-family:var(--mono);font-size:8px;letter-spacing:0.1em;color:rgba(0,255,136,0.3);display:flex;align-items:center;gap:12px;}
+.status-live{display:flex;align-items:center;gap:5px;color:var(--true);}
+.status-live-dot{width:5px;height:5px;border-radius:50%;background:var(--true);box-shadow:0 0 5px var(--true);animation:blink 1.5s step-end infinite;}
+.status-right{font-family:var(--mono);font-size:8px;letter-spacing:0.1em;color:rgba(255,255,255,0.15);}
+
+/* Custom quiz input */
+.teacher-custom-input{
+  display:flex;gap:8px;padding:10px 12px;border-bottom:1px solid var(--border);
+  flex-shrink:0;
+}
+.teacher-custom-textarea{
+  flex:1;background:rgba(176,136,255,0.04);border:1px solid rgba(176,136,255,0.2);
+  color:rgba(255,255,255,0.85);font-family:var(--body);font-size:12px;
+  padding:8px 10px;resize:none;outline:none;
+  min-height:36px;max-height:70px;line-height:1.4;
+  letter-spacing:0.02em;
+}
+.teacher-custom-textarea:focus{border-color:var(--purple);}
+.teacher-custom-textarea::placeholder{color:rgba(255,255,255,0.2);}
+.teacher-custom-btn{
+  background:rgba(176,136,255,0.1);border:1px solid rgba(176,136,255,0.3);
+  color:var(--purple);font-family:var(--mono);font-size:9px;letter-spacing:0.12em;
+  padding:8px 12px;cursor:pointer;transition:all 0.15s;white-space:nowrap;align-self:flex-end;
+}
+.teacher-custom-btn:hover{background:rgba(176,136,255,0.18);box-shadow:var(--glow-purple);}
+</style>
+</head>
+<body>
+
+<!-- ========== MODE SELECT ========== -->
+<div class="screen" id="screen-mode">
+  <div class="mode-bg"></div>
+  <div class="mode-wrap">
+    <div class="mode-logo">
+      <div class="mode-logo-text">FACT<span>CORE</span> <span style="color:rgba(255,204,0,0.7);font-size:20px;">BR</span></div>
+      <div class="mode-logo-sub">◉ PLATAFORMA DE VERIFICAÇÃO DE FATOS — BRASIL</div>
+    </div>
+    <div class="mode-cards">
+      <div class="mode-card student" onclick="enterMode('student')">
+        <div class="mode-card-icon">◎</div>
+        <div class="mode-card-title">MODO ALUNO</div>
+        <div class="mode-card-desc">
+          Verifique afirmações, notícias e informações do dia a dia. 
+Cruzamento com Lupa, Comprova, AFP Checamos e G1 Fato ou Fake.
+        </div>
+        <div class="mode-card-cta">▸ VERIFICAR AGORA</div>
+      </div>
+      <div class="mode-card teacher" onclick="enterMode('teacher')">
+        <div class="mode-card-icon">◈</div>
+        <div class="mode-card-title">MODO PROFESSOR</div>
+        <div class="mode-card-desc">
+          Conduza quizzes de fact-checking em sala de aula. Placar ao 
+vivo, banco de afirmações por tema e relatório de desempenho da turma.
+        </div>
+        <div class="mode-card-cta" style="color:var(--purple)">▸ INICIAR AULA</div>
+      </div>
+    </div>
+    <div style="font-family:var(--mono);font-size:8px;letter-spacing:0.12em;color:rgba(255,255,255,0.1);text-align:center;">
+      ESCOLA RAIO DE SOL · HACKNAV 2026 · NAVE A VELA
+    </div>
+  </div>
+</div>
+
+<!-- ========== STUDENT SCREEN ========== -->
+<div class="screen active" id="screen-student">
+  <div class="topbar">
+    <div class="logo" onclick="goHome()">
+      FACT<span>CORE</span>
+      <div class="logo-br">◉ BR</div>
+      <div class="logo-mode student">ALUNO</div>
+    </div>
+    <div class="topbar-right">
+      <div class="stat-pill v"><div class="stat-dot"></div><span id="stat-v">0</span> VERDADE</div>
+      <div class="stat-pill f"><div class="stat-dot"></div><span id="stat-f">1</span> FALSO</div>
+      <div class="stat-pill o"><div class="stat-dot"></div><span id="stat-o">0</span> OPINIÃO</div>
+      <button class="topbar-btn" onclick="goHome()">◉ TROCAR MODO</button>
+    </div>
+  </div>
+
+  <div class="cat-bar">
+    <div class="cat-label">TEMA:</div>
+    <button class="cat-chip active" onclick="setCategory('todos',this)">◉ TODOS</button>
+    <button class="cat-chip" onclick="setCategory('saude',this)">🏥 SAÚDE</button>
+    <button class="cat-chip" onclick="setCategory('politica',this)">🏛 POLÍTICA</button>
+    <button class="cat-chip" onclick="setCategory('eleicoes',this)">🗳 ELEIÇÕES</button>
+    <button class="cat-chip" onclick="setCategory('religiao',this)">✝ RELIGIÃO</button>
+    <button class="cat-chip" onclick="setCategory('economia',this)">📈 ECONOMIA</button>
+  </div>
+
+  <div class="main">
+    <div class="chat-panel">
+      <div class="chat-messages" id="chatMessages">
+        
+      <div class="msg user"><div class="msg-label">VOCÊ</div><div class="msg-bubble">Vacina causa autismo</div></div><div class="msg bot"><div class="msg-label">FACTCORE BR — ANÁLISE</div><div class="verdict-card false">
+    <div class="verdict-header">
+      <div class="verdict-badge false">FALSO</div>
+      <div class="verdict-score-bar"><div class="verdict-score-fill" style="width: 93%;" data-target="93%"></div></div>
+      <div class="verdict-score-num">93</div>
+    </div>
+    <div class="verdict-tags">
+      <div class="verdict-cat-tag">◉ SAUDE</div>
+      <div class="verdict-dna-tag">⚡ CURA MILAGROSA</div>
+    </div>
+    <div class="verdict-claim">"Vacina causa autismo"</div>
+    <div class="verdict-explanation">Afirmação refutada por Anvisa, OMS e mais de 40 estudos clínicos. Não há evidência científica de eficácia.</div>
+    <div class="verdict-sources"><div class="verdict-source-item"><div class="verdict-source-agency">LUPA</div><div><div class="verdict-source-text">Sem eficácia comprovada para COVID-19</div><a class="verdict-source-link" href="https://lupa.uol.com.br/" target="_blank">▸ lupa.uol.com.br</a></div></div><div class="verdict-source-item"><div class="verdict-source-agency">ANVISA</div><div><div class="verdict-source-text">Medicamento não aprovado para este uso</div><a class="verdict-source-link" href="https://anvisa.gov.br/" target="_blank">▸ anvisa.gov.br</a></div></div></div>
+    <div class="verdict-api-tag">▸ GOOGLE FACT CHECK TOOLS API · AGÊNCIAS BR · MODO DEMO BR</div>
+  </div></div></div>
+      <div class="chat-input-wrap">
+        <div class="input-hints" id="hintChips">
+          <button class="hint-chip" onclick="useHint(this)">Vacina causa autismo</button>
+          <button class="hint-chip" onclick="useHint(this)">Urna eletrônica é fraudada</button>
+          <button class="hint-chip" onclick="useHint(this)">Bolsonaro foi preso</button>
+          <button class="hint-chip" onclick="useHint(this)">Brasil tem maior desmatamento do mundo</button>
+        </div>
+        <div class="input-row">
+          <textarea class="chat-textarea" id="chatInput" placeholder="Digite uma afirmação para verificar..." rows="2" onkeydown="handleKey(event)"></textarea>
+          <button class="send-btn" id="sendBtn" onclick="sendMessage()">▸ VERIFICAR</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="right-panel">
+      <div class="panel-tabs">
+        <button class="panel-tab active" onclick="switchTab('feed',this)">◉ FEED BR</button>
+        <button class="panel-tab" onclick="switchTab('stats',this)">▲ STATS</button>
+        <button class="panel-tab" onclick="switchTab('dna',this)">⚡ DNA</button>
+      </div>
+      <div class="panel-content">
+
+        <div class="tab-pane active" id="tab-feed">
+          <div class="feed-header"><span>▸ CHECAGENS — AGÊNCIAS BR</span><span class="feed-live-tag"><div class="feed-live-dot"></div>AO VIVO</span></div>
+          <div class="feed-item" onclick="useHint2('Ivermectina cura COVID-19')">
+            <div class="feed-item-top"><div class="feed-verdict-badge false">FALSO</div><div class="feed-source">LUPA</div><div class="feed-cat">SAÚDE</div></div>
+            <div class="feed-title">Ivermectina não tem eficácia comprovada contra COVID-19 segundo OMS e Anvisa</div>
+            <div class="feed-time">há 18 min</div>
+          </div>
+          <div class="feed-item" onclick="useHint2('urnas eletrônicas têm fraude comprovada')">
+            <div class="feed-item-top"><div class="feed-verdict-badge false">FALSO</div><div class="feed-source">TSE</div><div class="feed-cat">ELEIÇÕES</div></div>
+            <div class="feed-title">TSE e peritos confirmam: urnas eletrônicas não apresentaram fraude em 2022</div>
+            <div class="feed-time">há 1h</div>
+          </div>
+          <div class="feed-item" onclick="useHint2('Lula fechou igrejas no Brasil')">
+            <div class="feed-item-top"><div class="feed-verdict-badge false">FALSO</div><div class="feed-source">AFP CHECAMOS</div><div class="feed-cat">RELIGIÃO</div></div>
+            <div class="feed-title">Não há decreto ou lei federal que autorize fechamento de igrejas no Brasil</div>
+            <div class="feed-time">há 2h</div>
+          </div>
+          <div class="feed-item" onclick="useHint2('desmatamento amazônia caiu 50%')">
+            <div class="feed-item-top"><div class="feed-verdict-badge true">VERDADE</div><div class="feed-source">INPE</div><div class="feed-cat">POLÍTICA</div></div>
+            <div class="feed-title">INPE confirma redução de 50% no desmatamento da Amazônia entre 2023 e 2025</div>
+            <div class="feed-time">há 4h</div>
+          </div>
+          <div class="feed-item" onclick="useHint2('poupança vai ser confiscada pelo governo')">
+            <div class="feed-item-top"><div class="feed-verdict-badge false">FALSO</div><div class="feed-source">G1 FATO OU FAKE</div><div class="feed-cat">ECONOMIA</div></div>
+            <div class="feed-title">Nenhum projeto de confisco de poupança existe no Congresso Nacional</div>
+            <div class="feed-time">há 5h</div>
+          </div>
+        </div>
+
+        <div class="tab-pane" id="tab-stats">
+          <div class="stats-grid">
+            <div class="stat-block"><div class="stat-block-label">VERIFICAÇÕES</div><div class="stat-block-value t" id="s-total">1</div><div class="stat-block-sub">nesta sessão</div></div>
+            <div class="stat-block"><div class="stat-block-label">API STATUS</div><div class="stat-block-value v" style="font-size:13px;line-height:2">DEMO BR</div><div class="stat-block-sub">Google FCT</div></div>
+            <div class="stat-block"><div class="stat-block-label">VERDADEIROS</div><div class="stat-block-value v" id="s-v">0</div><div class="stat-block-sub">confirmados</div></div>
+            <div class="stat-block"><div class="stat-block-label">FALSOS</div><div class="stat-block-value f" id="s-f">1</div><div class="stat-block-sub">detectados</div></div>
+          </div>
+          <div class="dist-chart">
+            <div class="dist-chart-title">DISTRIBUIÇÃO</div>
+            <div class="dist-bar-row v"><div class="dist-bar-label">VERDADE</div><div class="dist-bar-track"><div class="dist-bar-fill" id="bar-v" style="width:0%"></div></div><div class="dist-bar-pct" id="pct-v">0%</div></div>
+            <div class="dist-bar-row f"><div class="dist-bar-label">FALSO</div><div class="dist-bar-track"><div class="dist-bar-fill" id="bar-f" style="width: 100%;"></div></div><div class="dist-bar-pct" id="pct-f">100%</div></div>
+            <div class="dist-bar-row o"><div class="dist-bar-label">OPINIÃO</div><div class="dist-bar-track"><div class="dist-bar-fill" id="bar-o" style="width:0%"></div></div><div class="dist-bar-pct" id="pct-o">0%</div></div>
+          </div>
+        </div>
+
+        <div class="tab-pane" id="tab-dna">
+          <div style="font-family:var(--mono);font-size:8px;letter-spacing:0.15em;color:rgba(255,204,0,0.5);padding-bottom:8px;border-bottom:1px solid var(--border);">▸ DNA DA DESINFORMAÇÃO BR</div>
+          <div style="display:flex;flex-direction:column;gap:6px;">
+            ${['🏥 SAÚDE — Curas milagrosas, vacinas, remédios sem 
+evidência. Mais perigosa: pode causar mortes.','🗳 ELEIÇÕES — Urnas, 
+TSE, fraudes inventadas. Objetivo: deslegitimar a democracia.','🏛 
+POLÍTICA — Decretos falsos, citações inventadas, vídeos fora de 
+contexto.','✝ RELIGIÃO — Perseguição religiosa inventada para mobilizar 
+comunidades.','📈 ECONOMIA — Dados reais fora de contexto ou comparações
+ manipuladas.'].map(t =&gt; `<div style="border:1px solid var(--border);background:var(--panel2);padding:10px 12px;font-size:11px;color:rgba(255,255,255,0.4);line-height:1.6;">${t}</div>`).join('')}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="statusbar">
+    <div class="status-left">
+      <div class="status-live"><div class="status-live-dot"></div>GOOGLE FCT API</div>
+      <span style="font-size:7px;letter-spacing:0.08em;">LUPA · COMPROVA · AFP · G1 · PÚBLICA</span>
+    </div>
+    <div class="status-right" id="clock">14:49:44 · FACTCORE BR v4.0</div>
+  </div>
+</div>
+
+<!-- ========== TEACHER SCREEN ========== -->
+<div class="screen" id="screen-teacher">
+  <div class="topbar">
+    <div class="logo" onclick="goHome()">
+      FACT<span>CORE</span>
+      <div class="logo-br">◉ BR</div>
+      <div class="logo-mode teacher">PROFESSOR</div>
+    </div>
+    <div class="topbar-right">
+      <div style="font-family:var(--mono);font-size:8px;letter-spacing:0.1em;color:rgba(176,136,255,0.5);display:flex;align-items:center;gap:6px;">
+        <span>TURMA:</span><span style="color:var(--purple);" id="t-class-count">0 alunos</span>
+      </div>
+      <div style="font-family:var(--mono);font-size:8px;letter-spacing:0.1em;color:rgba(176,136,255,0.5);display:flex;align-items:center;gap:6px;">
+        <span>QUESTÕES:</span><span style="color:var(--purple);" id="t-q-count">0</span>
+      </div>
+      <button class="topbar-btn" onclick="goHome()">◉ TROCAR MODO</button>
+    </div>
+  </div>
+
+  <div class="main" style="display:grid;grid-template-columns:260px 1fr 240px;overflow:hidden;min-height:0;flex:1;">
+
+    <!-- SIDEBAR: Banco de questões -->
+    <div class="teacher-sidebar">
+      <div class="sidebar-section">
+        <div class="sidebar-title">◈ CÓDIGO DA TURMA</div>
+        <div class="session-code-display" id="sessionCode">----</div>
+        <div class="session-info">
+          <span>compartilhe com alunos</span>
+          <span style="color:var(--purple);" id="sessionStatus">◉ ATIVA</span>
+        </div>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-title">▸ QUESTÃO PERSONALIZADA</div>
+        <div style="display:flex;flex-direction:column;gap:6px;">
+          <textarea class="teacher-custom-textarea" id="customClaimInput" placeholder="Digite sua própria afirmação para a turma..." rows="2"></textarea>
+          <button class="teacher-custom-btn" onclick="selectCustomClaim()" style="align-self:flex-start;">▸ USAR ESTA</button>
+        </div>
+      </div>
+
+      <div class="sidebar-title" style="padding:10px 12px;border-bottom:1px solid var(--border);">◉ BANCO DE AFIRMAÇÕES</div>
+      <div class="sidebar-scroll" id="bankList"></div>
+    </div>
+
+    <!-- CENTER: Quiz stage -->
+    <div class="teacher-main">
+      <div class="teacher-toolbar">
+        <button class="teacher-btn launch" id="btnLaunch" onclick="launchQuestion()" disabled="disabled">▸ LANÇAR QUESTÃO</button>
+        <button class="teacher-btn reveal" id="btnReveal" onclick="revealAnswer()" disabled="disabled">◉ REVELAR RESPOSTA</button>
+        <button class="teacher-btn reset" onclick="resetQuestion()">↺ PRÓXIMA</button>
+        <div class="toolbar-claim-preview" id="toolbarPreview">← Selecione uma afirmação no banco</div>
+      </div>
+
+      <div class="quiz-stage">
+        <div class="quiz-waiting" id="quizWaiting">
+          <div class="quiz-waiting-icon">◈</div>
+          <div class="quiz-waiting-title">AGUARDANDO QUESTÃO</div>
+          <div class="quiz-waiting-sub">Selecione uma afirmação no banco à esquerda ou escreva sua própria. Depois clique em "LANÇAR QUESTÃO" para a turma votar.</div>
+        </div>
+
+        <div class="quiz-active" id="quizActive">
+          <div class="quiz-claim-box">
+            <div class="quiz-claim-label">▸ AFIRMAÇÃO PARA VERIFICAR</div>
+            <div class="quiz-claim-text" id="quizClaimText">—</div>
+            <div class="quiz-claim-cat" id="quizClaimCat"></div>
+          </div>
+
+          <div class="quiz-vote-row">
+            <div class="vote-btn true-btn" onclick="simulateVote('true')">
+              <div class="vote-btn-icon">✓</div>
+              <div class="vote-btn-label">VERDADEIRO</div>
+              <div class="vote-btn-count" id="vote-v">0</div>
+            </div>
+            <div class="vote-btn false-btn" onclick="simulateVote('false')">
+              <div class="vote-btn-icon">✕</div>
+              <div class="vote-btn-label">FALSO</div>
+              <div class="vote-btn-count" id="vote-f">0</div>
+            </div>
+            <div class="vote-btn opinion-btn" onclick="simulateVote('opinion')">
+              <div class="vote-btn-icon">!</div>
+              <div class="vote-btn-label">OPINIÃO</div>
+              <div class="vote-btn-count" id="vote-o">0</div>
+            </div>
+          </div>
+
+          <div class="quiz-live-bars">
+            <div style="font-family:var(--mono);font-size:7px;letter-spacing:0.15em;color:rgba(255,255,255,0.2);">▸ VOTAÇÃO AO VIVO</div>
+            <div class="live-bar-row v"><div class="live-bar-label">VERDADE</div><div class="live-bar-track"><div class="live-bar-fill" id="lbar-v" style="width:0%"></div></div><div class="live-bar-pct" id="lpct-v">0%</div></div>
+            <div class="live-bar-row f"><div class="live-bar-label">FALSO</div><div class="live-bar-track"><div class="live-bar-fill" id="lbar-f" style="width:0%"></div></div><div class="live-bar-pct" id="lpct-f">0%</div></div>
+            <div class="live-bar-row o"><div class="live-bar-label">OPINIÃO</div><div class="live-bar-track"><div class="live-bar-fill" id="lbar-o" style="width:0%"></div></div><div class="live-bar-pct" id="lpct-o">0%</div></div>
+          </div>
+
+          <div class="quiz-reveal" id="quizReveal">
+            <div class="reveal-header">
+              <div class="reveal-badge" id="revealBadge">—</div>
+              <div class="reveal-score-info" id="revealScore">—</div>
+              <div class="reveal-result-class" id="revealClassResult" style="font-family:var(--mono);font-size:9px;"></div>
+            </div>
+            <div class="reveal-explanation" id="revealExplanation">—</div>
+            <div class="reveal-sources" id="revealSources"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: Relatório -->
+    <div class="report-panel">
+      <div class="report-header">
+        <span>▸ RELATÓRIO DA AULA</span>
+        <span style="color:rgba(176,136,255,0.4);" id="reportTotal">0 questões</span>
+      </div>
+      <div class="report-scroll" id="reportScroll">
+        <div class="report-empty" id="reportEmpty">
+          Nenhuma questão revelada ainda.<br><br>
+          Lance e revele questões para gerar o relatório da turma.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="statusbar">
+    <div class="status-left">
+      <div class="status-live"><div class="status-live-dot"></div>MODO PROFESSOR</div>
+      <span style="font-size:7px;letter-spacing:0.08em;color:rgba(176,136,255,0.4);">SESSÃO ATIVA · FACTCORE BR</span>
+    </div>
+    <div class="status-right" id="clock2">14:49:44 · MODO PROFESSOR</div>
+  </div>
+</div>
+
+<script>
+// ========== STATE ==========
+let currentMode = 'none';
+let activeCategory = 'todos';
+let demoMode = true;
+let googleApiKey = '';
+let stats = {v:0,f:0,o:0,total:0};
+
+// Teacher state
+let selectedClaim = null;
+let quizVotes = {v:0,f:0,o:0};
+let quizResult = null;
+let reportItems = [];
+let sessionCode = '';
+
+// ========== BANK DATA ==========
+const BANK = {
+  saude: {
+    icon: '🏥', label: 'SAÚDE',
+    items: [
+      {text:'Ivermectina cura COVID-19',type:'false',dna:'CURA MILAGROSA',explanation:'Refutado por Anvisa e OMS. Mais de 40 estudos clínicos não encontraram eficácia da ivermectina contra COVID-19.',sources:[{agency:'LUPA',text:'Sem eficácia comprovada para COVID-19',url:'lupa.uol.com.br'}]},
+      {text:'Vacinas contra COVID alteram o DNA humano',type:'false',dna:'DESINFORMAÇÃO CIENTÍFICA',explanation:'Vacinas de mRNA não interagem com o DNA do núcleo celular. A proteína produzida é degradada em dias.',sources:[{agency:'FIOCRUZ',text:'Vacinas de mRNA não modificam o DNA',url:'fiocruz.br'}]},
+      {text:'O Brasil vacinou mais de 200 milhões de pessoas contra COVID',type:'true',dna:'DADO VERIFICADO',explanation:'O Ministério da Saúde confirmou que mais de 200 milhões de doses foram aplicadas no território nacional durante a campanha de vacinação.',sources:[{agency:'MINISTÉRIO DA SAÚDE',text:'Painel de vacinação COVID-19 — dados oficiais',url:'saude.gov.br'}]},
+      {text:'Cloroquina é eficaz no tratamento da COVID-19',type:'false',dna:'TRATAMENTO SEM EVIDÊNCIA',explanation:'Anvisa e OMS concluíram que cloroquina não tem eficácia comprovada para COVID-19 após múltiplos ensaios clínicos.',sources:[{agency:'COMPROVA',text:'Estudos não comprovam eficácia da cloroquina',url:'projetocomprova.com.br'}]},
+    ]
+  },
+  eleicoes: {
+    icon: '🗳', label: 'ELEIÇÕES',
+    items: [
+      {text:'Urnas eletrônicas brasileiras foram hackeadas em 2022',type:'false',dna:'ATAQUE À DEMOCRACIA',explanation:'TSE e peritos do Exército Brasileiro não encontraram evidências de fraude. Mais de 300 auditores analisaram o sistema.',sources:[{agency:'TSE',text:'Integridade total confirmada no processo eleitoral 2022',url:'tse.jus.br'}]},
+      {text:'O Brasil usa urnas eletrônicas desde 1996',type:'true',dna:'DADO VERIFICADO',explanation:'O Brasil foi pioneiro no uso de urnas eletrônicas. A primeira eleição totalmente eletrônica no Brasil foi em 1996.',sources:[{agency:'TSE',text:'História do voto eletrônico no Brasil',url:'tse.jus.br'}]},
+      {text:'O TSE apagou votos nas eleições de 2022',type:'false',dna:'MANIPULAÇÃO ELEITORAL',explanation:'Auditores independentes e do próprio Exército verificaram os dados e não encontraram inconsistências nos totais de votos.',sources:[{agency:'AFP CHECAMOS',text:'Alegação de apagamento de votos é falsa',url:'checamos.afp.com'}]},
+      {text:'Candidatos podem ser inelegíveis por decisão do TSE',type:'true',dna:'DADO VERIFICADO',explanation:'A Constituição e a Lei das Inelegibilidades permitem ao TSE declarar candidatos inelegíveis por crimes eleitorais ou abuso de poder.',sources:[{agency:'TSE',text:'Competência do TSE para declarar inelegibilidade',url:'tse.jus.br'}]},
+    ]
+  },
+  politica: {
+    icon: '🏛', label: 'POLÍTICA',
+    items: [
+      {text:'O STF proibiu a bíblia nas escolas públicas',type:'false',dna:'DECRETO FALSO',explanation:'Não existe decisão do STF nesse sentido. A Constituição garante liberdade religiosa. Nenhum livro religioso foi proibido.',sources:[{agency:'COMPROVA',text:'Não existe decisão do STF proibindo bíblia em escolas',url:'projetocomprova.com.br'}]},
+      {text:'O Brasil tem uma constituição promulgada em 1988',type:'true',dna:'DADO VERIFICADO',explanation:'A Constituição Cidadã foi promulgada em 5 de outubro de 1988, encerrando o período da ditadura militar.',sources:[{agency:'SENADO FEDERAL',text:'Constituição Federal de 1988 — texto integral',url:'senado.leg.br'}]},
+      {text:'Desmatamento da Amazônia caiu 50% entre 2022 e 2025',type:'true',dna:'DADO VERIFICADO',explanation:'O INPE confirmou redução significativa no desmatamento. O PRODES registrou queda consistente desde 2022.',sources:[{agency:'INPE',text:'PRODES 2024: queda histórica no desmatamento da Amazônia',url:'inpe.br'}]},
+      {text:'O governo federal pode decretar intervenção federal nos estados',type:'true',dna:'DADO VERIFICADO',explanation:'A Constituição prevê intervenção federal em casos específicos como ameaça à soberania, ordem pública ou execução de lei federal.',sources:[{agency:'SENADO',text:'Art. 34 da Constituição Federal: hipóteses de intervenção federal',url:'senado.leg.br'}]},
+    ]
+  },
+  religiao: {
+    icon: '✝', label: 'RELIGIÃO',
+    items: [
+      {text:'O governo federal emitiu decreto fechando igrejas evangélicas',type:'false',dna:'PERSEGUIÇÃO INVENTADA',explanation:'Não há nenhum decreto federal restringindo cultos ou fechando igrejas no Brasil. A liberdade religiosa é garantida pela Constituição.',sources:[{agency:'AFP CHECAMOS',text:'Governo federal não emitiu ordem de fechamento de igrejas',url:'checamos.afp.com'}]},
+      {text:'O Brasil tem mais de 200 denominações cristãs registradas',type:'true',dna:'DADO VERIFICADO',explanation:'O IBGE registra centenas de denominações religiosas no Brasil. O país tem uma das maiores populações cristãs do mundo.',sources:[{agency:'IBGE',text:'Censo demográfico: perfil religioso do Brasil',url:'ibge.gov.br'}]},
+      {text:'Uma nova lei proíbe a celebração de natal em escolas públicas',type:'false',dna:'FAKE DE PERSEGUIÇÃO',explanation:'Nenhuma lei federal proíbe comemorações religiosas em escolas. O tema é regulado por cada município e estado.',sources:[{agency:'G1 FATO OU FAKE',text:'Falso que há lei proibindo natal em escolas',url:'g1.globo.com/fato-ou-fake'}]},
+    ]
+  },
+  economia: {
+    icon: '📈', label: 'ECONOMIA',
+    items: [
+      {text:'O governo vai confiscar a poupança dos brasileiros',type:'false',dna:'DADO FORA DE CONTEXTO',explanation:'Nenhuma lei autoriza confisco de poupança. O episódio do Plano Collor (1990) é frequentemente usado fora de contexto para gerar pânico.',sources:[{agency:'G1 FATO OU FAKE',text:'Não existe projeto de confisco de poupança no Congresso',url:'g1.globo.com/fato-ou-fake'}]},
+      {text:'O Brasil é a maior economia da América Latina',type:'true',dna:'DADO VERIFICADO',explanation:'O Brasil tem o maior PIB da América Latina, à frente de México e Argentina, segundo dados do FMI e Banco Mundial.',sources:[{agency:'FMI',text:'World Economic Outlook: ranking de PIB nominal por país',url:'imf.org'}]},
+      {text:'A inflação no Brasil zerou completamente em 2025',type:'false',dna:'DADO MANIPULADO',explanation:'O IPCA acumulou 4,8% em 2025. Houve desaceleração real comparado aos anos anteriores, mas a inflação não zerou.',sources:[{agency:'LUPA',text:'IPCA 2025: inflação desacelerou mas não zerou',url:'lupa.uol.com.br'}]},
+      {text:'O PIB do Brasil cresceu mais de 3% em 2024',type:'true',dna:'DADO VERIFICADO',explanation:'O IBGE confirmou crescimento do PIB brasileiro acima de 3% em 2024, impulsionado por agropecuária e serviços.',sources:[{agency:'IBGE',text:'PIB 2024: crescimento confirmado pelo IBGE',url:'ibge.gov.br'}]},
+    ]
+  }
+};
+
+// ========== DEMO DATA ==========
+const DEMO_RESULTS = {
+  saude: {type:'false',score:0.93,category:'saude',dna:'CURA MILAGROSA',explanation:'Afirmação refutada por Anvisa, OMS e mais de 40 estudos clínicos. Não há evidência científica de eficácia.',sources:[{agency:'LUPA',text:'Sem eficácia comprovada para COVID-19',url:'lupa.uol.com.br'},{agency:'ANVISA',text:'Medicamento não aprovado para este uso',url:'anvisa.gov.br'}]},
+  eleicoes: {type:'false',score:0.96,category:'eleicoes',dna:'ATAQUE À DEMOCRACIA',explanation:'TSE e peritos do Exército não encontraram evidências de fraude. Auditores independentes confirmaram a integridade do sistema.',sources:[{agency:'TSE',text:'Integridade total do processo eleitoral confirmada',url:'tse.jus.br'}]},
+  politica: {type:'false',score:0.91,category:'politica',dna:'DECRETO FALSO',explanation:'Não existe lei ou decreto desta natureza. Verificação no Diário Oficial não encontrou nenhuma publicação correspondente.',sources:[{agency:'COMPROVA',text:'Verificação no Diário Oficial não encontrou o decreto',url:'projetocomprova.com.br'}]},
+  religiao: {type:'false',score:0.88,category:'religiao',dna:'PERSEGUIÇÃO INVENTADA',explanation:'Nenhum decreto, lei ou medida governamental restringe cultos ou fecha igrejas no Brasil. Liberdade religiosa garantida constitucionalmente.',sources:[{agency:'AFP CHECAMOS',text:'Sem decreto de fechamento de igrejas',url:'checamos.afp.com'}]},
+  economia: {type:'false',score:0.87,category:'economia',dna:'DADO FORA DE CONTEXTO',explanation:'Nenhuma lei autoriza o confisco de poupança. O boato circula desde 2020 explorando memória do Plano Collor de 1990.',sources:[{agency:'G1 FATO OU FAKE',text:'Sem projeto de confisco de poupança no Congresso',url:'g1.globo.com/fato-ou-fake'}]},
+};
+
+function detectCategory(text) {
+  const l = text.toLowerCase();
+  if(/vacin|autismo|covid|ivermectin|cloroquin|remédio|cura|anvisa|oms|vírus|doença|hospital/.test(l)) return 'saude';
+  if(/urn|elei|tse|voto|fraude|candidat|resultado/.test(l)) return 'eleicoes';
+  if(/stf|decreto|lei|congresso|senado|presidente|lula|bolsonaro|ministério|governo/.test(l)) return 'politica';
+  if(/religião|deus|jesus|pastor|padre|culto|missa|evangel|bíblia|igrej|cristã|natal/.test(l)) return 'religiao';
+  if(/pib|inflação|ipca|poupança|salário|imposto|pix|banco|econom|real|dólar|preço/.test(l)) return 'economia';
+  return activeCategory !== 'todos' ? activeCategory : null;
+}
+
+function getDemoResult(text) {
+  const cat = detectCategory(text);
+  if(cat && DEMO_RESULTS[cat]) return {...DEMO_RESULTS[cat]};
+  const r = Math.random();
+  if(r<0.25) return {type:'true',score:0.72,category:'geral',dna:'DADO VERIFICADO',explanation:'A afirmação está alinhada com fontes primárias verificadas. Agências brasileiras de checagem não identificaram contradições.',sources:[{agency:'COMPROVA',text:'Afirmação verificada por consórcio de veículos',url:'projetocomprova.com.br'}]};
+  if(r<0.65) return {type:'false',score:0.81,category:'geral',dna:'DESINFORMAÇÃO',explanation:'A afirmação contradiz informações verificadas. O padrão é consistente com desinformação circulada em redes sociais brasileiras.',sources:[{agency:'LUPA',text:'Sem respaldo em fontes primárias verificáveis',url:'lupa.uol.com.br'}]};
+  return {type:'opinion',score:0.28,category:'geral',dna:'SUBJETIVO',explanation:'Declaração subjetiva ou não verificável objetivamente. Pode ser uma crença pessoal ou julgamento de valor sem fato concreto.',sources:[]};
+}
+
+// ========== MODE ==========
+function enterMode(mode) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  currentMode = mode;
+  if(mode === 'student') {
+    document.getElementById('screen-student').classList.add('active');
+  } else {
+    document.getElementById('screen-teacher').classList.add('active');
+    initTeacher();
+  }
+}
+
+function goHome() {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-mode').classList.add('active');
+}
+
+// ========== TEACHER INIT ==========
+function initTeacher() {
+  // Generate session code
+  sessionCode = Math.random().toString(36).substring(2,6).toUpperCase();
+  document.getElementById('sessionCode').textContent = sessionCode;
+
+  // Simulate students joining
+  let count = 0;
+  const target = Math.floor(Math.random()*15)+18;
+  const interval = setInterval(() => {
+    count += Math.floor(Math.random()*3)+1;
+    if(count >= target) { count = target; clearInterval(interval); }
+    document.getElementById('t-class-count').textContent = count + ' alunos';
+    document.getElementById('t-q-count').textContent = reportItems.length;
+  }, 400);
+
+  buildBank();
+}
+
+function buildBank() {
+  const container = document.getElementById('bankList');
+  container.innerHTML = '';
+  Object.entries(BANK).forEach(([cat, data]) => {
+    const block = document.createElement('div');
+    block.className = 'bank-category open';
+    block.innerHTML = `
+      <div class="bank-cat-header" onclick="toggleBank(this)">
+        <span class="bank-cat-icon">${data.icon}</span>
+        <span>${data.label}</span>
+        <span style="margin-left:auto;font-size:9px;opacity:0.4;">▼</span>
+      </div>
+      <div class="bank-items">
+        ${data.items.map((item,i) => `
+          <div class="bank-item" onclick="selectBankItem('${cat}',${i})">${item.text}</div>
+        `).join('')}
+      </div>
+    `;
+    container.appendChild(block);
+  });
+}
+
+function toggleBank(header) {
+  header.parentElement.classList.toggle('open');
+}
+
+function selectBankItem(cat, idx) {
+  selectedClaim = {...BANK[cat].items[idx], category: cat};
+  document.querySelectorAll('.bank-item').forEach(i => i.classList.remove('selected'));
+  const items = document.querySelectorAll(`.bank-category`);
+  // find and highlight
+  let cats = Object.keys(BANK);
+  let catIdx = cats.indexOf(cat);
+  if(items[catIdx]) {
+    const bankItems = items[catIdx].querySelectorAll('.bank-item');
+    if(bankItems[idx]) bankItems[idx].classList.add('selected');
+  }
+  document.getElementById('toolbarPreview').textContent = selectedClaim.text;
+  document.getElementById('btnLaunch').disabled = false;
+  resetQuizState();
+}
+
+function selectCustomClaim() {
+  const text = document.getElementById('customClaimInput').value.trim();
+  if(!text) return;
+  const result = getDemoResult(text);
+  selectedClaim = {
+    text,
+    type: result.type,
+    dna: result.dna,
+    category: result.category || 'geral',
+    explanation: result.explanation,
+    sources: result.sources
+  };
+  document.querySelectorAll('.bank-item').forEach(i => i.classList.remove('selected'));
+  document.getElementById('toolbarPreview').textContent = text;
+  document.getElementById('btnLaunch').disabled = false;
+  resetQuizState();
+}
+
+function resetQuizState() {
+  quizVotes = {v:0,f:0,o:0};
+  quizResult = null;
+  document.getElementById('quizWaiting').style.display = 'flex';
+  document.getElementById('quizActive').classList.remove('visible');
+  document.getElementById('quizReveal').classList.remove('visible');
+  updateVoteBars();
+  document.getElementById('vote-v').textContent = '0';
+  document.getElementById('vote-f').textContent = '0';
+  document.getElementById('vote-o').textContent = '0';
+  document.getElementById('btnReveal').disabled = true;
+}
+
+function launchQuestion() {
+  if(!selectedClaim) return;
+  document.getElementById('quizWaiting').style.display = 'none';
+  document.getElementById('quizClaimText').textContent = selectedClaim.text;
+  document.getElementById('quizClaimCat').textContent = '◉ ' + (selectedClaim.category || 'geral').toUpperCase();
+  document.getElementById('quizActive').classList.add('visible');
+  document.getElementById('quizReveal').classList.remove('visible');
+  document.getElementById('btnReveal').disabled = false;
+  document.getElementById('btnLaunch').disabled = true;
+
+  // Simulate students voting over time
+  simulateStudentVoting();
+}
+
+function simulateStudentVoting() {
+  const totalStudents = parseInt(document.getElementById('t-class-count').textContent) || 20;
+  let voted = 0;
+  const correctType = selectedClaim.type;
+
+  const interval = setInterval(() => {
+    if(voted >= totalStudents) { clearInterval(interval); return; }
+    const batch = Math.floor(Math.random()*3)+1;
+    for(let i=0;i<batch && voted<totalStudents;i++) {
+      const r = Math.random();
+      let vote;
+      // Bias toward wrong answers (realistic classroom)
+      if(correctType === 'false') {
+        vote = r < 0.45 ? 'false' : r < 0.75 ? 'true' : 'opinion';
+      } else if(correctType === 'true') {
+        vote = r < 0.55 ? 'true' : r < 0.8 ? 'false' : 'opinion';
+      } else {
+        vote = r < 0.4 ? 'opinion' : r < 0.7 ? 'false' : 'true';
+      }
+      quizVotes[vote === 'true' ? 'v' : vote === 'false' ? 'f' : 'o']++;
+      voted++;
+    }
+    document.getElementById('vote-v').textContent = quizVotes.v;
+    document.getElementById('vote-f').textContent = quizVotes.f;
+    document.getElementById('vote-o').textContent = quizVotes.o;
+    updateVoteBars();
+  }, 280);
+}
+
+function simulateVote(type) {
+  quizVotes[type === 'true' ? 'v' : type === 'false' ? 'f' : 'o']++;
+  document.getElementById('vote-v').textContent = quizVotes.v;
+  document.getElementById('vote-f').textContent = quizVotes.f;
+  document.getElementById('vote-o').textContent = quizVotes.o;
+  updateVoteBars();
+}
+
+function updateVoteBars() {
+  const total = quizVotes.v + quizVotes.f + quizVotes.o;
+  if(total === 0) {
+    ['v','f','o'].forEach(k => { document.getElementById('lbar-'+k).style.width='0%'; document.getElementById('lpct-'+k).textContent='0%'; });
+    return;
+  }
+  const pv = Math.round((quizVotes.v/total)*100);
+  const pf = Math.round((quizVotes.f/total)*100);
+  const po = 100-pv-pf;
+  document.getElementById('lbar-v').style.width=pv+'%';
+  document.getElementById('lbar-f').style.width=pf+'%';
+  document.getElementById('lbar-o').style.width=po+'%';
+  document.getElementById('lpct-v').textContent=pv+'%';
+  document.getElementById('lpct-f').textContent=pf+'%';
+  document.getElementById('lpct-o').textContent=po+'%';
+}
+
+function revealAnswer() {
+  if(!selectedClaim) return;
+  const result = selectedClaim;
+  const typeLabel = {true:'VERDADEIRO',false:'FALSO',opinion:'OPINIÃO'};
+
+  const badge = document.getElementById('revealBadge');
+  badge.textContent = typeLabel[result.type];
+  badge.className = 'reveal-badge ' + result.type;
+
+  const scoreInfo = document.getElementById('revealScore');
+  scoreInfo.textContent = '▸ ' + (result.dna || 'VERIFICADO');
+  scoreInfo.className = 'reveal-score-info ' + result.type;
+
+  document.getElementById('revealExplanation').textContent = result.explanation;
+
+  const sourcesEl = document.getElementById('revealSources');
+  sourcesEl.innerHTML = result.sources && result.sources.length > 0
+    ? result.sources.map(s => `
+        <div class="reveal-source-row">
+          <div class="reveal-source-agency">${s.agency}</div>
+          <div class="reveal-source-text">${s.text}</div>
+        </div>
+      `).join('')
+    : '';
+
+  // Class performance
+  const total = quizVotes.v + quizVotes.f + quizVotes.o;
+  const correctVotes = result.type === 'true' ? quizVotes.v : result.type === 'false' ? quizVotes.f : quizVotes.o;
+  const correctPct = total > 0 ? Math.round((correctVotes/total)*100) : 0;
+  document.getElementById('revealClassResult').textContent =
+    `TURMA ACERTOU: ${correctPct}%`;
+  document.getElementById('revealClassResult').style.color = correctPct >= 60 ? 'var(--true)' : 'var(--false)';
+
+  document.getElementById('quizReveal').classList.add('visible');
+
+  // Add to report
+  addToReport(result, correctPct, total);
+  document.getElementById('btnReveal').disabled = true;
+}
+
+function addToReport(result, correctPct, totalVotes) {
+  const typeLabel = {true:'VERDADEIRO',false:'FALSO',opinion:'OPINIÃO'};
+  reportItems.push({claim: selectedClaim.text, type: result.type, correctPct, totalVotes});
+  document.getElementById('reportTotal').textContent = reportItems.length + ' questões';
+  document.getElementById('t-q-count').textContent = reportItems.length;
+
+  const empty = document.getElementById('reportEmpty');
+  if(empty) empty.remove();
+
+  const scroll = document.getElementById('reportScroll');
+  const item = document.createElement('div');
+  item.className = 'report-section';
+  item.innerHTML = `
+    <div class="report-q-item">
+      <div class="report-q-top">
+        <div class="report-q-num">#${reportItems.length}</div>
+        <div class="report-q-badge ${result.type}">${typeLabel[result.type]}</div>
+        <div class="report-q-pct ${correctPct>=60?'good':'bad'}">${correctPct}%</div>
+      </div>
+      <div class="report-q-text">${selectedClaim.text}</div>
+      <div style="font-family:var(--mono);font-size:7px;color:rgba(255,255,255,0.15);letter-spacing:0.08em;margin-top:2px;">${totalVotes} votos · ${correctPct>=60?'TURMA ACERTOU':'TURMA ERROU'}</div>
+    </div>
+  `;
+  scroll.appendChild(item);
+  scroll.scrollTop = scroll.scrollHeight;
+}
+
+function resetQuestion() {
+  selectedClaim = null;
+  document.querySelectorAll('.bank-item').forEach(i => i.classList.remove('selected'));
+  document.getElementById('toolbarPreview').textContent = '← Selecione uma afirmação no banco';
+  document.getElementById('btnLaunch').disabled = true;
+  document.getElementById('customClaimInput').value = '';
+  resetQuizState();
+}
+
+// ========== STUDENT LOGIC ==========
+function setCategory(cat, btn) {
+  activeCategory = cat;
+  document.querySelectorAll('.cat-chip').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  updateHints(cat);
+}
+
+const HINTS = {
+  todos: ['Vacina causa autismo','Urna eletrônica é fraudada','Brasil tem maior desmatamento do mundo','Governo vai confiscar a poupança'],
+  saude: ['Ivermectina cura COVID','Vacina muda o DNA','Cloroquina é eficaz contra covid','Kit COVID funciona'],
+  politica: ['STF proibiu a bíblia nas escolas','Lula decretou censura à imprensa','Desmatamento caiu 50% na Amazônia','Brasil é maior economia da América Latina'],
+  eleicoes: ['Urnas eletrônicas foram hackeadas','TSE apagou votos de 2022','Exército confirmou fraude nas eleições','Brasil usa urnas desde 1996'],
+  religiao: ['Governo fechou igrejas evangélicas','STF proibiu cultos religiosos','Nova lei proíbe celebração de natal','Brasil tem mais de 200 denominações cristãs'],
+  economia: ['Poupança vai ser confiscada','Inflação no Brasil zerou em 2025','PIB cresceu mais de 3% em 2024','Brasil é maior economia da América Latina']
+};
+
+function updateHints(cat) {
+  document.getElementById('hintChips').innerHTML = (HINTS[cat]||HINTS.todos).map(h =>
+    `<button class="hint-chip" onclick="useHint(this)">${h}</button>`
+  ).join('');
+}
+
+function useHint(btn) { document.getElementById('chatInput').value = btn.textContent; }
+function useHint2(text) { document.getElementById('chatInput').value = text; document.getElementById('chatInput').focus(); }
+function handleKey(e) { if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMessage();} }
+
+function switchTab(id, btn) {
+  document.querySelectorAll('.panel-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('tab-'+id).classList.add('active');
+}
+
+function appendMessage(role, content) {
+  const welcome = document.getElementById('chatWelcome');
+  if(welcome) welcome.remove();
+  const msgs = document.getElementById('chatMessages');
+  const msg = document.createElement('div');
+  msg.className = 'msg '+role;
+  if(typeof content === 'string') {
+    msg.innerHTML = `<div class="msg-label">${role==='user'?'VOCÊ':'FACTCORE BR'}</div><div class="msg-bubble">${content}</div>`;
+  } else {
+    msg.innerHTML = '<div class="msg-label">FACTCORE BR — ANÁLISE</div>';
+    msg.appendChild(content);
+  }
+  msgs.appendChild(msg);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+function showTyping() {
+  const welcome = document.getElementById('chatWelcome');
+  if(welcome) welcome.remove();
+  const msgs = document.getElementById('chatMessages');
+  const t = document.createElement('div');
+  t.className='msg bot';t.id='typing';
+  t.innerHTML=`<div class="msg-label">FACTCORE BR</div><div class="typing-indicator"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div>`;
+  msgs.appendChild(t);
+  msgs.scrollTop=msgs.scrollHeight;
+}
+function removeTyping(){const t=document.getElementById('typing');if(t)t.remove();}
+
+function buildVerdictCard(claim, result) {
+  const typeLabel={true:'VERDADEIRO',false:'FALSO',opinion:'OPINIÃO / ALERTA'};
+  const scoreDisplay=Math.round(result.score*100);
+  const catLabel=(result.category||'geral').toUpperCase();
+  const card=document.createElement('div');
+  card.className=`verdict-card ${result.type}`;
+  const sourcesHTML=result.sources&&result.sources.length>0
+    ?`<div class="verdict-sources">${result.sources.map(s=>`<div class="verdict-source-item"><div class="verdict-source-agency">${s.agency}</div><div><div class="verdict-source-text">${s.text}</div><a class="verdict-source-link" href="https://${s.url}" target="_blank">▸ ${s.url}</a></div></div>`).join('')}</div>`:'';
+  card.innerHTML=`
+    <div class="verdict-header">
+      <div class="verdict-badge ${result.type}">${typeLabel[result.type]}</div>
+      <div class="verdict-score-bar"><div class="verdict-score-fill" style="width:0%" data-target="${result.score*100}%"></div></div>
+      <div class="verdict-score-num">${scoreDisplay}</div>
+    </div>
+    <div class="verdict-tags">
+      <div class="verdict-cat-tag">◉ ${catLabel}</div>
+      ${result.dna?`<div class="verdict-dna-tag">⚡ ${result.dna}</div>`:''}
+    </div>
+    <div class="verdict-claim">"${claim}"</div>
+    <div class="verdict-explanation">${result.explanation}</div>
+    ${sourcesHTML}
+    <div class="verdict-api-tag">▸ GOOGLE FACT CHECK TOOLS API · AGÊNCIAS BR · ${demoMode?'MODO DEMO BR':'API LIVE'}</div>
+  `;
+  setTimeout(()=>{const f=card.querySelector('.verdict-score-fill');if(f)f.style.width=f.dataset.target;},100);
+  return card;
+}
+
+function updateStats(type) {
+  stats.total++;
+  stats[type==='true'?'v':type==='false'?'f':'o']++;
+  document.getElementById('stat-v').textContent=stats.v;
+  document.getElementById('stat-f').textContent=stats.f;
+  document.getElementById('stat-o').textContent=stats.o;
+  document.getElementById('s-total').textContent=stats.total;
+  document.getElementById('s-v').textContent=stats.v;
+  document.getElementById('s-f').textContent=stats.f;
+  const t=stats.total;
+  const pv=Math.round((stats.v/t)*100);
+  const pf=Math.round((stats.f/t)*100);
+  const po=100-pv-pf;
+  document.getElementById('bar-v').style.width=pv+'%';
+  document.getElementById('bar-f').style.width=pf+'%';
+  document.getElementById('bar-o').style.width=po+'%';
+  document.getElementById('pct-v').textContent=pv+'%';
+  document.getElementById('pct-f').textContent=pf+'%';
+  document.getElementById('pct-o').textContent=po+'%';
+}
+
+async function sendMessage() {
+  const input=document.getElementById('chatInput');
+  const text=input.value.trim();
+  if(!text)return;
+  const btn=document.getElementById('sendBtn');
+  input.value='';btn.disabled=true;
+  appendMessage('user',text);
+  showTyping();
+  await new Promise(r=>setTimeout(r,900+Math.random()*600));
+  const result=getDemoResult(text);
+  removeTyping();
+  const card=buildVerdictCard(text,result);
+  const msgEl=document.createElement('div');
+  msgEl.className='msg bot';
+  msgEl.innerHTML='<div class="msg-label">FACTCORE BR — ANÁLISE</div>';
+  msgEl.appendChild(card);
+  document.getElementById('chatMessages').appendChild(msgEl);
+  document.getElementById('chatMessages').scrollTop=9999;
+  updateStats(result.type);
+  btn.disabled=false;
+}
+
+// ========== CLOCKS ==========
+function updateClocks() {
+  const t=new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  const c1=document.getElementById('clock');
+  const c2=document.getElementById('clock2');
+  if(c1)c1.textContent=t+' · FACTCORE BR v4.0';
+  if(c2)c2.textContent=t+' · MODO PROFESSOR';
+}
+setInterval(updateClocks,1000);
+updateClocks();
+</script>
+
+
+</body></html>
