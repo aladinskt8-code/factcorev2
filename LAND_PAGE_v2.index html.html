@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FactCore BR — Revolte-se</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Bebas+Neue&family=Barlow+Condensed:wght@300;400;700;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --black: #080808;
+  --green: #00ff88;
+  --cyan: #00ccff;
+  --red: #ff2200;
+  --white: #f0f0f0;
+  --grey: #1a1a1a;
+  --mono: 'Share Tech Mono', monospace;
+  --display: 'Bebas Neue', sans-serif;
+  --body: 'Barlow Condensed', sans-serif;
+}
+
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--black);
+  color: var(--white);
+  font-family: var(--body);
+  overflow-x: hidden;
+  cursor: crosshair;
+}
+
+/* scanlines */
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.12) 2px, rgba(0,0,0,0.12) 4px);
+  pointer-events: none; z-index: 9999;
+}
+
+/* grain */
+body::after {
+  content: '';
+  position: fixed; inset: -50%;
+  width: 200%; height: 200%;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+  opacity: 0.035; pointer-events: none; z-index: 9998;
+  animation: grain 0.5s steps(1) infinite;
+}
+
+@keyframes grain {
+  0%,100%{transform:translate(0,0)} 10%{transform:translate(-2%,-3%)} 20%{transform:translate(3%,2%)}
+  30%{transform:translate(-1%,4%)} 40%{transform:translate(2%,-2%)} 50%{transform:translate(-3%,1%)}
+  60%{transform:translate(1%,3%)} 70%{transform:translate(-2%,-1%)} 80%{transform:translate(3%,-3%)} 90%{transform:translate(-1%,2%)}
+}
+
+/* ===== NAV ===== */
+nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 20px 40px;
+  border-bottom: 1px solid rgba(0,255,136,0.1);
+  background: rgba(8,8,8,0.92);
+  backdrop-filter: blur(10px);
+}
+.nav-logo { font-family: var(--mono); font-size: 14px; letter-spacing: 0.25em; color: var(--green); text-shadow: 0 0 20px rgba(0,255,136,0.5); }
+.nav-logo span { color: var(--cyan); }
+.nav-tag { font-family: var(--mono); font-size: 9px; letter-spacing: 0.2em; color: rgba(255,255,255,0.2); }
+.nav-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); box-shadow: 0 0 10px var(--green); animation: pulse 2s ease-in-out infinite; }
+@keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.4;transform:scale(0.8)} }
+
+/* ===== HERO ===== */
+.hero {
+  min-height: 100vh;
+  display: grid; grid-template-columns: 1fr 1fr;
+  position: relative; overflow: hidden; padding-top: 80px;
+}
+
+/* Escudo parallax — fica atrás do hero */
+.shield-parallax {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  z-index: 1;
+  will-change: transform;
+  opacity: 0.06;
+  filter: drop-shadow(0 0 60px rgba(0,255,136,0.4));
+}
+.shield-parallax svg { width: 520px; height: 580px; }
+
+.hero-accent {
+  position: absolute; top: 0; right: 0;
+  width: 45%; height: 65%;
+  background: var(--green); z-index: 0;
+  clip-path: polygon(8% 0, 100% 0, 100% 100%, 0% 100%);
+}
+
+.hero-left {
+  position: relative; z-index: 2;
+  display: flex; flex-direction: column; justify-content: center;
+  padding: 80px 40px 80px 60px;
+}
+
+.hero-number {
+  font-family: var(--display);
+  font-size: clamp(120px, 18vw, 220px);
+  line-height: 0.85; color: rgba(0,255,136,0.05);
+  position: absolute; left: -10px; top: 50%; transform: translateY(-50%);
+  user-select: none; letter-spacing: -0.02em;
+}
+
+.hero-overline {
+  font-family: var(--mono); font-size: 9px; letter-spacing: 0.3em; color: var(--green);
+  margin-bottom: 20px; display: flex; align-items: center; gap: 12px;
+  animation: fadeUp 0.8s 0.2s both;
+}
+.hero-overline::before { content: ''; width: 32px; height: 1px; background: var(--green); }
+
+.hero-title {
+  font-family: var(--display);
+  font-size: clamp(72px, 10vw, 140px);
+  line-height: 0.9; letter-spacing: 0.02em; color: var(--white);
+  animation: fadeUp 0.8s 0.35s both;
+}
+.hero-title .revolt { display: block; color: var(--green); text-shadow: 0 0 40px rgba(0,255,136,0.4); position: relative; }
+.hero-title .revolt::after {
+  content: 'REVOLTE-SE.'; position: absolute; inset: 0;
+  color: var(--red); text-shadow: none;
+  animation: glitch 4s infinite;
+  clip-path: polygon(0 30%, 100% 30%, 100% 50%, 0 50%);
+}
+@keyframes glitch {
+  0%,90%,100%{transform:translate(0);opacity:0}
+  91%{transform:translate(-4px,0);opacity:0.7}
+  93%{transform:translate(4px,0);opacity:0.7}
+  95%{transform:translate(-2px,0);opacity:0.5}
+  97%{transform:translate(0);opacity:0}
+}
+
+.hero-sub {
+  font-size: 16px; letter-spacing: 0.08em; color: rgba(255,255,255,0.35);
+  margin-top: 28px; line-height: 1.7; max-width: 400px; font-weight: 300;
+  animation: fadeUp 0.8s 0.5s both;
+}
+
+.hero-cta-row { display: flex; gap: 14px; margin-top: 40px; animation: fadeUp 0.8s 0.65s both; }
+
+.btn-primary {
+  font-family: var(--mono); font-size: 11px; letter-spacing: 0.2em;
+  padding: 14px 28px; background: var(--green); color: var(--black);
+  border: none; cursor: pointer; font-weight: bold; transition: all 0.15s;
+  text-decoration: none; display: inline-block;
+}
+.btn-primary:hover { background: var(--white); transform: translate(-2px,-2px); box-shadow: 4px 4px 0 var(--green); }
+
+.btn-secondary {
+  font-family: var(--mono); font-size: 11px; letter-spacing: 0.2em;
+  padding: 14px 28px; background: none; color: var(--white);
+  border: 1px solid rgba(255,255,255,0.2); cursor: pointer; transition: all 0.15s;
+  text-decoration: none; display: inline-block;
+}
+.btn-secondary:hover { border-color: var(--green); color: var(--green); }
+
+@keyframes fadeUp { from{opacity:0;transform:translateY(24px)} to{opacity:1;transform:translateY(0)} }
+
+/* hero right — QR */
+.hero-right {
+  position: relative; z-index: 2;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px;
+}
+.qr-container { display: flex; flex-direction: column; align-items: center; gap: 20px; animation: fadeUp 0.8s 0.8s both; }
+.qr-label { font-family: var(--mono); font-size: 8px; letter-spacing: 0.3em; color: var(--green); text-align: center; }
+.qr-frame {
+  position: relative; padding: 12px; background: var(--black);
+  border: 1px solid rgba(0,255,136,0.3);
+  box-shadow: 0 0 40px rgba(0,255,136,0.08), inset 0 0 40px rgba(0,255,136,0.03);
+}
+.qr-frame::before,.qr-frame::after { content:'';position:absolute;width:20px;height:20px;border-color:var(--green);border-style:solid; }
+.qr-frame::before { top:-1px;left:-1px;border-width:2px 0 0 2px; }
+.qr-frame::after { bottom:-1px;right:-1px;border-width:0 2px 2px 0; }
+.qr-svg { display:block;width:180px;height:180px;image-rendering:pixelated; }
+.qr-scan-line {
+  position:absolute;left:12px;right:12px;height:2px;
+  background:linear-gradient(90deg,transparent,var(--green),transparent);
+  box-shadow:0 0 8px var(--green);
+  animation:scanQR 2.5s ease-in-out infinite;top:12px;
+}
+@keyframes scanQR { 0%{top:12px;opacity:1} 90%{top:calc(100% - 14px);opacity:1} 100%{top:12px;opacity:0} }
+.qr-url { font-family:var(--mono);font-size:10px;letter-spacing:0.15em;color:rgba(0,255,136,0.5);text-align:center; }
+.qr-url span { color:var(--green); }
+
+/* ===== TICKER ===== */
+.ticker { background:var(--green);padding:10px 0;overflow:hidden;white-space:nowrap; }
+.ticker-inner { display:inline-flex;animation:ticker 22s linear infinite; }
+.ticker-item { font-family:var(--mono);font-size:11px;letter-spacing:0.2em;color:var(--black);font-weight:bold;padding:0 40px; }
+.ticker-sep { color:rgba(0,0,0,0.3); }
+@keyframes ticker { 0%{transform:translateX(0)} 100%{transform:translateX(-50%)} }
+
+/* ===== FEATURES ===== */
+.features { padding:100px 60px;display:grid;grid-template-columns:1fr 1fr;gap:0; }
+.features-left { border-right:1px solid rgba(255,255,255,0.06);padding-right:60px; }
+.section-num { font-family:var(--mono);font-size:9px;letter-spacing:0.25em;color:rgba(0,255,136,0.4);margin-bottom:20px; }
+.section-title { font-family:var(--display);font-size:clamp(48px,6vw,80px);line-height:0.92;color:var(--white);margin-bottom:32px; }
+.section-title em { color:var(--green);font-style:normal; }
+.section-body { font-size:15px;color:rgba(255,255,255,0.35);line-height:1.8;letter-spacing:0.03em;font-weight:300;max-width:420px; }
+.features-right { padding-left:60px;display:flex;flex-direction:column;justify-content:center;gap:0; }
+.feature-item {
+  padding:28px 0;border-bottom:1px solid rgba(255,255,255,0.06);
+  display:grid;grid-template-columns:48px 1fr;gap:20px;align-items:start;transition:all 0.2s;
+}
+.feature-item:first-child { border-top:1px solid rgba(255,255,255,0.06); }
+.feature-item:hover .feature-icon { color:var(--green);text-shadow:0 0 20px rgba(0,255,136,0.5); }
+.feature-item:hover .feature-title { color:var(--green); }
+.feature-icon { font-family:var(--display);font-size:36px;color:rgba(255,255,255,0.15);line-height:1;transition:all 0.2s; }
+.feature-title { font-family:var(--mono);font-size:11px;letter-spacing:0.2em;color:rgba(255,255,255,0.7);margin-bottom:8px;transition:color 0.2s; }
+.feature-desc { font-size:13px;color:rgba(255,255,255,0.25);line-height:1.6;letter-spacing:0.02em; }
+
+/* ===== MANIFESTO ===== */
+.manifesto { padding:100px 60px;background:var(--grey);position:relative;overflow:hidden; }
+.manifesto::before {
+  content:'REVOLTE-SE';position:absolute;font-family:var(--display);font-size:25vw;
+  color:rgba(0,255,136,0.03);top:50%;left:50%;transform:translate(-50%,-50%);
+  white-space:nowrap;user-select:none;letter-spacing:0.05em;
+}
+.manifesto-inner { position:relative;z-index:1;max-width:800px;margin:0 auto;text-align:center;display:flex;flex-direction:column;gap:32px; }
+.manifesto-tag {
+  font-family:var(--mono);font-size:9px;letter-spacing:0.3em;color:rgba(0,255,136,0.5);
+  display:flex;align-items:center;justify-content:center;gap:16px;
+}
+.manifesto-tag::before,.manifesto-tag::after { content:'';width:60px;height:1px;background:rgba(0,255,136,0.3); }
+.manifesto-text { font-family:var(--display);font-size:clamp(32px,5vw,64px);line-height:1.05;color:var(--white);letter-spacing:0.03em; }
+.manifesto-text strong { color:var(--green);text-shadow:0 0 30px rgba(0,255,136,0.3); }
+.manifesto-sub { font-size:14px;color:rgba(255,255,255,0.3);line-height:1.8;letter-spacing:0.05em;font-weight:300; }
+
+/* ===== PLATAFORMAS — 5 cards ===== */
+.platforms { padding:100px 60px; }
+.platforms-header {
+  display:flex;align-items:flex-end;justify-content:space-between;
+  margin-bottom:60px;border-bottom:1px solid rgba(255,255,255,0.06);padding-bottom:32px;
+}
+.platforms-title { font-family:var(--display);font-size:clamp(48px,6vw,80px);color:var(--white);line-height:0.9; }
+.platforms-title em { color:var(--green);font-style:normal; }
+.platforms-count { font-family:var(--mono);font-size:9px;letter-spacing:0.2em;color:rgba(255,255,255,0.2);text-align:right; }
+
+/* Linha 1: 3 cards */
+.platforms-grid-top {
+  display:grid;grid-template-columns:repeat(3,1fr);
+  gap:1px;background:rgba(255,255,255,0.06);margin-bottom:1px;
+}
+/* Linha 2: 2 cards centralizados */
+.platforms-grid-bottom {
+  display:grid;grid-template-columns:repeat(2,1fr);
+  gap:1px;background:rgba(255,255,255,0.06);
+  max-width:calc(66.66% + 1px);
+}
+
+.platform-card {
+  background:var(--black);padding:40px 32px;
+  display:flex;flex-direction:column;gap:16px;
+  transition:all 0.2s;position:relative;overflow:hidden;
+}
+.platform-card::before {
+  content:'';position:absolute;bottom:0;left:0;width:100%;height:2px;
+  background:var(--green);transform:scaleX(0);transform-origin:left;transition:transform 0.3s ease;
+}
+.platform-card:hover { background:rgba(0,255,136,0.03); }
+.platform-card:hover::before { transform:scaleX(1); }
+.platform-card:hover .platform-icon { color:var(--green); }
+
+.platform-num { font-family:var(--mono);font-size:9px;letter-spacing:0.2em;color:rgba(255,255,255,0.15); }
+.platform-icon { font-size:28px;color:rgba(255,255,255,0.2);transition:color 0.2s;font-family:var(--mono); }
+.platform-name { font-family:var(--display);font-size:28px;color:var(--white);letter-spacing:0.05em;line-height:1; }
+.platform-desc { font-size:12px;color:rgba(255,255,255,0.25);line-height:1.6;letter-spacing:0.03em; }
+.platform-tech { font-family:var(--mono);font-size:8px;letter-spacing:0.15em;color:rgba(0,204,255,0.4);margin-top:4px; }
+
+.platform-status {
+  font-family:var(--mono);font-size:8px;letter-spacing:0.15em;
+  padding:3px 8px;border:1px solid;display:inline-flex;
+  align-items:center;gap:5px;align-self:flex-start;margin-top:auto;
+}
+.platform-status.live { color:var(--green);border-color:rgba(0,255,136,0.3); }
+.platform-status.soon { color:rgba(255,255,255,0.25);border-color:rgba(255,255,255,0.1); }
+.platform-status.concept { color:rgba(0,204,255,0.4);border-color:rgba(0,204,255,0.2); }
+.status-dot { width:5px;height:5px;border-radius:50%;background:currentColor; }
+.platform-status.live .status-dot { animation:pulse 1.5s ease-in-out infinite; }
+
+/* ===== FOOTER ===== */
+footer {
+  border-top:1px solid rgba(255,255,255,0.06);
+  padding:40px 60px;display:flex;align-items:center;justify-content:space-between;
+}
+.footer-logo { font-family:var(--mono);font-size:13px;letter-spacing:0.25em;color:var(--green); }
+.footer-logo span { color:var(--cyan); }
+.footer-credits { font-family:var(--mono);font-size:8px;letter-spacing:0.15em;color:rgba(255,255,255,0.15);text-align:center;line-height:1.8; }
+.footer-right { font-family:var(--mono);font-size:8px;letter-spacing:0.15em;color:rgba(255,255,255,0.15);text-align:right;line-height:1.8; }
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+  .hero{grid-template-columns:1fr;min-height:auto}
+  .hero-right{padding:40px 20px 60px}
+  .hero-accent{width:100%;height:40%;top:auto;bottom:0;clip-path:none}
+  .hero-left{padding:60px 24px 40px}
+  .features{grid-template-columns:1fr;padding:60px 24px}
+  .features-left{border-right:none;border-bottom:1px solid rgba(255,255,255,0.06);padding-right:0;padding-bottom:60px}
+  .features-right{padding-left:0;padding-top:60px}
+  .platforms-grid-top{grid-template-columns:1fr}
+  .platforms-grid-bottom{grid-template-columns:1fr;max-width:100%}
+  .platforms{padding:60px 24px}
+  .manifesto{padding:60px 24px}
+  footer{flex-direction:column;gap:24px;text-align:center;padding:40px 24px}
+  nav{padding:16px 24px}
+  .shield-parallax svg{width:280px;height:310px}
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">FACT<span>CORE</span> BR</div>
+  <div class="nav-tag">◉ PLATAFORMA ANTI-DESINFORMAÇÃO</div>
+  <div class="nav-dot"></div>
+</nav>
+
+<!-- HERO -->
+<section class="hero" id="hero">
+
+  <!-- Escudo + Lupa — parallax scroll -->
+  <div class="shield-parallax" id="shieldEl">
+    <svg viewBox="0 0 200 230" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <!-- Escudo externo -->
+      <path d="M100 6 L185 38 L185 112 Q185 172 100 220 Q15 172 15 112 L15 38 Z"
+        stroke="#00ff88" stroke-width="2.5" stroke-linejoin="round" fill="rgba(0,255,136,0.03)"/>
+      <!-- Escudo interno -->
+      <path d="M100 20 L171 48 L171 112 Q171 160 100 202 Q29 160 29 112 L29 48 Z"
+        stroke="#00ff88" stroke-width="1" stroke-linejoin="round" fill="none" opacity="0.5"/>
+      <!-- Detalhe topo escudo -->
+      <line x1="78" y1="14" x2="78" y2="26" stroke="#00ff88" stroke-width="1" opacity="0.5"/>
+      <line x1="100" y1="7" x2="100" y2="19" stroke="#00ff88" stroke-width="1.5" opacity="0.6"/>
+      <line x1="122" y1="14" x2="122" y2="26" stroke="#00ff88" stroke-width="1" opacity="0.5"/>
+      <!-- Detalhe lateral esquerdo -->
+      <line x1="21" y1="80" x2="32" y2="80" stroke="#00ff88" stroke-width="0.8" opacity="0.4"/>
+      <line x1="18" y1="110" x2="29" y2="110" stroke="#00ff88" stroke-width="0.8" opacity="0.4"/>
+      <!-- Detalhe lateral direito -->
+      <line x1="179" y1="80" x2="168" y2="80" stroke="#00ff88" stroke-width="0.8" opacity="0.4"/>
+      <line x1="182" y1="110" x2="171" y2="110" stroke="#00ff88" stroke-width="0.8" opacity="0.4"/>
+      <!-- Lupa: círculo externo -->
+      <circle cx="88" cy="106" r="38" stroke="#00ff88" stroke-width="3.5" fill="none"/>
+      <!-- Lupa: círculo interno (reflexo) -->
+      <circle cx="88" cy="106" r="30" stroke="#00ff88" stroke-width="0.8" fill="rgba(0,255,136,0.04)" opacity="0.6"/>
+      <!-- Lupa: reflexo pequeno -->
+      <circle cx="76" cy="94" r="6" stroke="#00ff88" stroke-width="0.5" fill="none" opacity="0.3"/>
+      <!-- Lupa: mira horizontal -->
+      <line x1="55" y1="106" x2="121" y2="106" stroke="#00ff88" stroke-width="0.8" opacity="0.35"/>
+      <!-- Lupa: mira vertical -->
+      <line x1="88" y1="73" x2="88" y2="139" stroke="#00ff88" stroke-width="0.8" opacity="0.35"/>
+      <!-- Lupa: cabo grosso -->
+      <line x1="118" y1="136" x2="150" y2="168" stroke="#00ff88" stroke-width="7" stroke-linecap="round"/>
+      <!-- Lupa: cabo highlight -->
+      <line x1="116" y1="133" x2="148" y2="165" stroke="#00ccff" stroke-width="2" stroke-linecap="round" opacity="0.4"/>
+      <!-- Lupa: cabo detalhe grip -->
+      <line x1="130" y1="147" x2="138" y2="155" stroke="rgba(0,0,0,0.4)" stroke-width="4" stroke-linecap="round"/>
+    </svg>
+  </div>
+
+  <div class="hero-accent"></div>
+
+  <div class="hero-left">
+    <div class="hero-number">00</div>
+    <div class="hero-overline">HACKNAV 2026 · NAVE A VELA</div>
+    <h1 class="hero-title">
+      A VERDADE<br>
+      NÃO<br>
+      <span class="revolt">REVOLTE-SE.</span>
+    </h1>
+    <p class="hero-sub">
+      Plataforma brasileira de verificação de fatos para jovens.
+      Detecte. Analise. Combata a desinformação digital.
+    </p>
+    <div class="hero-cta-row">
+      <a href="#plataformas" class="btn-primary">▸ VER PLATAFORMAS</a>
+      <a href="#manifesto" class="btn-secondary">◉ MANIFESTO</a>
+    </div>
+  </div>
+
+  <div class="hero-right">
+    <div class="qr-container">
+      <div class="qr-label">▸ ACESSE A PLATAFORMA</div>
+      <div class="qr-frame">
+        <div class="qr-scan-line"></div>
+        <svg class="qr-svg" viewBox="0 0 21 21" xmlns="http://www.w3.org/2000/svg">
+          <rect width="21" height="21" fill="#080808"/>
+          <rect x="1" y="1" width="7" height="7" fill="none" stroke="#00ff88" stroke-width="1"/>
+          <rect x="3" y="3" width="3" height="3" fill="#00ff88"/>
+          <rect x="13" y="1" width="7" height="7" fill="none" stroke="#00ff88" stroke-width="1"/>
+          <rect x="15" y="3" width="3" height="3" fill="#00ff88"/>
+          <rect x="1" y="13" width="7" height="7" fill="none" stroke="#00ff88" stroke-width="1"/>
+          <rect x="3" y="15" width="3" height="3" fill="#00ff88"/>
+          <rect x="9" y="1" width="1" height="1" fill="#00ff88"/>
+          <rect x="11" y="1" width="1" height="1" fill="#00ff88"/>
+          <rect x="9" y="3" width="2" height="1" fill="#00ff88"/>
+          <rect x="10" y="5" width="1" height="1" fill="#00ff88"/>
+          <rect x="9" y="7" width="1" height="1" fill="#00ff88"/>
+          <rect x="11" y="7" width="1" height="1" fill="#00ff88"/>
+          <rect x="1" y="9" width="1" height="1" fill="#00ff88"/>
+          <rect x="3" y="9" width="2" height="1" fill="#00ff88"/>
+          <rect x="7" y="9" width="1" height="1" fill="#00ff88"/>
+          <rect x="9" y="9" width="3" height="1" fill="#00ff88"/>
+          <rect x="13" y="9" width="1" height="1" fill="#00ff88"/>
+          <rect x="15" y="9" width="2" height="1" fill="#00ff88"/>
+          <rect x="19" y="9" width="1" height="1" fill="#00ff88"/>
+          <rect x="1" y="11" width="2" height="1" fill="#00ff88"/>
+          <rect x="5" y="11" width="1" height="1" fill="#00ff88"/>
+          <rect x="8" y="11" width="1" height="1" fill="#00ff88"/>
+          <rect x="10" y="11" width="2" height="1" fill="#00ff88"/>
+          <rect x="14" y="11" width="1" height="1" fill="#00ff88"/>
+          <rect x="17" y="11" width="3" height="1" fill="#00ff88"/>
+          <rect x="9" y="13" width="1" height="1" fill="#00ff88"/>
+          <rect x="11" y="13" width="3" height="1" fill="#00ff88"/>
+          <rect x="15" y="13" width="1" height="1" fill="#00ff88"/>
+          <rect x="9" y="15" width="2" height="1" fill="#00ff88"/>
+          <rect x="13" y="15" width="1" height="1" fill="#00ff88"/>
+          <rect x="17" y="15" width="1" height="1" fill="#00ff88"/>
+          <rect x="9" y="17" width="1" height="1" fill="#00ff88"/>
+          <rect x="11" y="17" width="2" height="1" fill="#00ff88"/>
+          <rect x="15" y="17" width="3" height="1" fill="#00ff88"/>
+          <rect x="9" y="19" width="3" height="1" fill="#00ff88"/>
+          <rect x="14" y="19" width="1" height="1" fill="#00ff88"/>
+          <rect x="17" y="19" width="1" height="1" fill="#00ff88"/>
+          <rect x="19" y="19" width="1" height="1" fill="#00ff88"/>
+          <rect x="8" y="6" width="1" height="1" fill="#00ff88"/>
+          <rect x="6" y="8" width="1" height="1" fill="#00ff88"/>
+          <rect x="8" y="8" width="1" height="1" fill="#00ff88"/>
+        </svg>
+      </div>
+      <div class="qr-url">APONTE A CÂMERA · <span>factcorebr.vercel.app</span></div>
+      <div class="qr-label" style="opacity:0.4">OU ACESSE PELO LINK ACIMA</div>
+    </div>
+  </div>
+</section>
+
+<!-- TICKER -->
+<div class="ticker">
+  <div class="ticker-inner">
+    <span class="ticker-item">VERIFIQUE ANTES DE COMPARTILHAR <span class="ticker-sep">◉</span></span>
+    <span class="ticker-item">A DESINFORMAÇÃO MATA <span class="ticker-sep">◉</span></span>
+    <span class="ticker-item">LUPA · COMPROVA · AFP CHECAMOS · G1 FATO OU FAKE <span class="ticker-sep">◉</span></span>
+    <span class="ticker-item">REVOLTE-SE CONTRA A MENTIRA <span class="ticker-sep">◉</span></span>
+    <span class="ticker-item">FACTCORE BR · ESCOLA RAIO DE SOL <span class="ticker-sep">◉</span></span>
+    <span class="ticker-item">HACKNAV 2026 · NAVE A VELA <span class="ticker-sep">◉</span></span>
+    <span class="ticker-item">VERIFIQUE ANTES DE COMPARTILHAR <span class="ticker-sep">◉</span></span>
+    <span class="ticker-item">A DESINFORMAÇÃO MATA <span class="ticker-sep">◉</span></span>
+    <span class="ticker-item">LUPA · COMPROVA · AFP CHECAMOS · G1 FATO OU FAKE <span class="ticker-sep">◉</span></span>
+    <span class="ticker-item">REVOLTE-SE CONTRA A MENTIRA <span class="ticker-sep">◉</span></span>
+    <span class="ticker-item">FACTCORE BR · ESCOLA RAIO DE SOL <span class="ticker-sep">◉</span></span>
+    <span class="ticker-item">HACKNAV 2026 · NAVE A VELA <span class="ticker-sep">◉</span></span>
+  </div>
+</div>
+
+<!-- FEATURES -->
+<section class="features">
+  <div class="features-left">
+    <div class="section-num">◉ 01 — O QUE É</div>
+    <h2 class="section-title">UMA <em>ARMA</em> CONTRA A MENTIRA</h2>
+    <p class="section-body">
+      FactCore BR é um ecossistema de combate à desinformação digital, construído para jovens brasileiros. Não é só um verificador — é um movimento. Disponível em cinco plataformas, sem desculpa para não checar.
+    </p>
+  </div>
+  <div class="features-right">
+    <div class="feature-item">
+      <div class="feature-icon">◎</div>
+      <div>
+        <div class="feature-title">VERIFICAÇÃO EM TEMPO REAL</div>
+        <div class="feature-desc">Cruzamento com Lupa, Comprova, AFP Checamos, G1 Fato ou Fake, Agência Pública e TSE. Cinco categorias: Saúde, Política, Eleições, Religião, Economia.</div>
+      </div>
+    </div>
+    <div class="feature-item">
+      <div class="feature-icon">⬡</div>
+      <div>
+        <div class="feature-title">EXTENSÃO DE NAVEGADOR</div>
+        <div class="feature-desc">Detecta desinformação enquanto você navega. Alerta em tempo real, sem sair da página. Selecione qualquer texto e verifique na hora.</div>
+      </div>
+    </div>
+    <div class="feature-item">
+      <div class="feature-icon">⚡</div>
+      <div>
+        <div class="feature-title">DNA DA DESINFORMAÇÃO BR</div>
+        <div class="feature-desc">Mapa dos padrões de fake news no Brasil. Curas milagrosas, decretos falsos, ataques à democracia, perseguição religiosa inventada.</div>
+      </div>
+    </div>
+    <div class="feature-item">
+      <div class="feature-icon">▲</div>
+      <div>
+        <div class="feature-title">GOOGLE FACT CHECK TOOLS API</div>
+        <div class="feature-desc">Banco de dados internacional de checagens com agências brasileiras integradas. Verdadeiro, Falso ou Opinião — sempre com fonte.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- MANIFESTO -->
+<section class="manifesto" id="manifesto">
+  <div class="manifesto-inner">
+    <div class="manifesto-tag">◉ MANIFESTO</div>
+    <div class="manifesto-text">
+      A DESINFORMAÇÃO É <strong>VIOLÊNCIA.</strong><br>
+      CADA FAKE NEWS COMPARTILHADA É UM<br>
+      TIRO NA DEMOCRACIA.
+    </div>
+    <p class="manifesto-sub">
+      FactCore BR nasceu da convicção de que jovens brasileiros merecem ferramentas reais para navegar num oceano de mentiras. Não basta saber que fake news existe — é preciso saber identificar, questionar e agir.
+    </p>
+    <div style="display:flex;gap:12px;justify-content:center;margin-top:8px;">
+      <div style="font-family:var(--mono);font-size:8px;letter-spacing:0.2em;color:var(--green);border:1px solid rgba(0,255,136,0.3);padding:6px 14px;">◉ ESCOLA RAIO DE SOL</div>
+      <div style="font-family:var(--mono);font-size:8px;letter-spacing:0.2em;color:rgba(255,255,255,0.25);border:1px solid rgba(255,255,255,0.1);padding:6px 14px;">HACKNAV 2026</div>
+      <div style="font-family:var(--mono);font-size:8px;letter-spacing:0.2em;color:rgba(255,255,255,0.25);border:1px solid rgba(255,255,255,0.1);padding:6px 14px;">NAVE A VELA</div>
+    </div>
+  </div>
+</section>
+
+<!-- PLATAFORMAS -->
+<section class="platforms" id="plataformas">
+  <div class="platforms-header">
+    <h2 class="platforms-title">PLATA-<br><em>FORMAS</em></h2>
+    <div class="platforms-count">◉ ECOSSISTEMA<br>FACTCORE BR<br><span style="color:var(--green);font-size:22px;display:block;margin-top:4px;">05</span></div>
+  </div>
+
+  <!-- Linha 1: 3 cards -->
+  <div class="platforms-grid-top">
+    <div class="platform-card">
+      <div class="platform-num">01</div>
+      <div class="platform-icon">◎</div>
+      <div class="platform-name">WEB APP</div>
+      <div class="platform-desc">Verificador de fatos com interface tática, feed ao vivo de checagens, cinco categorias brasileiras e painel DNA da Desinformação.</div>
+      <div class="platform-tech">▸ HTML · CSS · JS PURO</div>
+      <div class="platform-status live"><div class="status-dot"></div>AO VIVO</div>
+    </div>
+    <div class="platform-card">
+      <div class="platform-num">02</div>
+      <div class="platform-icon">⬡</div>
+      <div class="platform-name">EXTENSÃO</div>
+      <div class="platform-desc">Extensão para Chrome e Firefox. Detecta desinformação em qualquer página em tempo real. Selecione o texto — o FactCore BR verifica.</div>
+      <div class="platform-tech">▸ JAVASCRIPT · MANIFEST V3</div>
+      <div class="platform-status soon">EM BREVE</div>
+    </div>
+    <div class="platform-card">
+      <div class="platform-num">03</div>
+      <div class="platform-icon">◈</div>
+      <div class="platform-name">APP MOBILE</div>
+      <div class="platform-desc">Verifique notícias direto pelo celular. Compartilhe o resultado antes de repassar. Disponível para Android e iOS.</div>
+      <div class="platform-tech">▸ REACT NATIVE · EXPO</div>
+      <div class="platform-status soon">EM BREVE</div>
+    </div>
+  </div>
+
+  <!-- Linha 2: 2 cards -->
+  <div class="platforms-grid-bottom">
+    <div class="platform-card">
+      <div class="platform-num">04</div>
+      <div class="platform-icon">▣</div>
+      <div class="platform-name">APP DESKTOP</div>
+      <div class="platform-desc">Aplicativo nativo para Windows, Mac e Linux. Verificação offline com banco de checagens local e notificações em tempo real.</div>
+      <div class="platform-tech">▸ ELECTRON · NODE.JS</div>
+      <div class="platform-status soon">EM BREVE</div>
+    </div>
+    <div class="platform-card">
+      <div class="platform-num">05</div>
+      <div class="platform-icon">⬛</div>
+      <div class="platform-name">TOTEM</div>
+      <div class="platform-desc">Dispositivo físico em MDF para congressos, debates e escolas. QR code de acesso direto. Soberania informacional no mundo real.</div>
+      <div class="platform-tech">▸ MDF · QR CODE · DESIGN A LASER</div>
+      <div class="platform-status concept">CONCEITO</div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-logo">FACT<span>CORE</span> BR</div>
+  <div class="footer-credits">
+    ESCOLA RAIO DE SOL · PAULO AFONSO, BA<br>
+    HACKNAV 2026 · NAVE A VELA
+  </div>
+  <div class="footer-right">
+    COMBATE À DESINFORMAÇÃO<br>
+    GERAÇÃO Z · BRASIL
+  </div>
+</footer>
+
+<script>
+// ===== SHIELD PARALLAX NO SCROLL =====
+(function(){
+  const shield = document.getElementById('shieldEl');
+  if(!shield) return;
+
+  let scrollY = 0;
+  let curY = 0;
+  let mouseX = 0, mouseY = 0;
+  let curMX = 0, curMY = 0;
+
+  // Scroll move o escudo verticalmente
+  window.addEventListener('scroll', () => {
+    scrollY = window.scrollY;
+  }, { passive: true });
+
+  // Mouse move adiciona parallax lateral + rotação suave
+  const hero = document.getElementById('hero');
+  hero.addEventListener('mousemove', e => {
+    const rect = hero.getBoundingClientRect();
+    mouseX = (e.clientX - rect.width / 2) / rect.width;
+    mouseY = (e.clientY - rect.height / 2) / rect.height;
+  });
+
+  hero.addEventListener('mouseleave', () => {
+    mouseX = 0;
+    mouseY = 0;
+  });
+
+  // Scroll da roda também empurra o escudo
+  hero.addEventListener('wheel', e => {
+    scrollY += e.deltaY * 0.3;
+  }, { passive: true });
+
+  function tick() {
+    // Lerp suave
+    curY += (scrollY * 0.35 - curY) * 0.06;
+    curMX += (mouseX * 30 - curMX) * 0.05;
+    curMY += (mouseY * 20 - curMY) * 0.05;
+
+    const rotX = mouseY * 5;
+    const rotY = -mouseX * 5;
+
+    shield.style.transform =
+      `translate(calc(-50% + ${curMX.toFixed(2)}px), calc(-50% + ${(curMY - curY).toFixed(2)}px)) rotateX(${rotX.toFixed(2)}deg) rotateY(${rotY.toFixed(2)}deg)`;
+
+    requestAnimationFrame(tick);
+  }
+  tick();
+})();
+</script>
+</body>
+</html>
